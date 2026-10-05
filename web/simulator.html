@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Escalation Agent - consumer complaint help</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf8f5;--card:#fff;--txt:#1f2933;--mut:#5b6670;--line:#e7e2da;--pri:#0f766e;--onpri:#fff;--priBg:#e6f4f2;--wait:#b45309;--waitBg:#fef3e2;--ok:#15803d;--okBg:#e8f5ec;--bad:#b91c1c;--bot:#f1eee8;
+--sans:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--serif:Georgia,"Times New Roman",serif}
+@media(prefers-color-scheme:dark){:root{--bg:#12171a;--card:#1a2125;--txt:#e8edf0;--mut:#a7b3bb;--line:#2d373d;--pri:#2dd4bf;--onpri:#04201d;--priBg:#10302d;--wait:#fbbf24;--waitBg:#2b2210;--ok:#4ade80;--okBg:#10261a;--bad:#f87171;--bot:#222b30}}
+*{box-sizing:border-box}html,body{margin:0}body{font:14px/1.5 var(--sans);background:var(--bg);color:var(--txt)}
+:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+.top{display:flex;align-items:center;gap:12px;max-width:1500px;margin:0 auto;padding:14px 16px}
+.top b{font-size:19px;margin-right:auto}.top span{color:var(--mut);font-size:15px}
+button{font:inherit;cursor:pointer;min-height:44px}
+.pri{background:var(--pri);color:var(--onpri);border:0;border-radius:12px;padding:0 20px;font-weight:700}
+.ghost{background:transparent;color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:0 14px}
+main{max-width:1500px;margin:0 auto;padding:0 16px 40px;display:grid;gap:28px;grid-template-columns:minmax(0,1fr);grid-template-areas:"next""letter""chat""side"}
+@media(min-width:1100px){main{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) 340px;grid-template-areas:"letter next side""letter chat side";grid-template-rows:auto 1fr;align-items:start}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+#next{grid-area:next;border-left:6px solid var(--pri);background:var(--priBg)}
+#next.wait{border-left-color:var(--wait);background:var(--waitBg)}#next.ok{border-left-color:var(--ok);background:var(--okBg)}#next.mut{border-left-color:var(--line);background:var(--card)}
+#next h1{font-size:19px;line-height:1.25;margin:0 0 6px}#next p{margin:0 0 12px;max-width:60ch}#next p:last-child{margin:0}
+#letterBox{grid-area:letter}#letterBox h2,aside h2{font-size:17px;margin:0 0 10px}
+#letterText{font:14px/1.7 var(--serif);background:#fff;color:#1f2933;border:1px solid var(--line);border-radius:8px;padding:20px;white-space:pre-wrap;max-height:min(520px,60vh);overflow:auto}
+#letterText[contenteditable=true]{outline:2px solid var(--pri)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 8px}.note{color:var(--mut);font-size:14px;margin:0}
+.chat{grid-area:chat;display:flex;flex-direction:column}
+#log{overflow:auto;min-height:260px;max-height:min(480px,55vh);padding:2px}
+.m{max-width:90%;padding:10px 14px;border-radius:16px;margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.me{background:var(--pri);color:var(--onpri);margin-left:auto;border-bottom-right-radius:4px}.bot{background:var(--bot);border-bottom-left-radius:4px}
+.typing{color:var(--mut);animation:pulse 1s infinite alternate}@keyframes pulse{to{opacity:.35}}
+.vbar{color:var(--pri);font-weight:700;font-size:15px;margin-top:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chips button{border:1px solid var(--line);background:transparent;color:var(--txt);border-radius:999px;padding:0 16px;font-size:15px}
+.chips button.stop{color:var(--bad);border-color:var(--bad)}
+.row{display:flex;gap:8px;margin-top:12px}
+input{flex:1;min-width:0;min-height:48px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font:inherit}
+.ic{width:48px;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--pri);display:grid;place-items:center;padding:0}
+.ic svg{width:22px;height:22px;fill:currentColor}.ic.on{background:var(--bad);color:#fff;border-color:var(--bad);animation:pulse .8s infinite alternate}.ic:disabled{opacity:.4}
+aside{grid-area:side;display:grid;gap:16px;align-content:start}
+.badge{display:inline-block;border-radius:999px;padding:2px 12px;font-size:14px;font-weight:700;background:var(--priBg);color:var(--pri);margin-left:6px}
+.badge.wait{background:var(--waitBg);color:var(--wait)}.badge.ok{background:var(--okBg);color:var(--ok)}.badge.mut{background:var(--bot);color:var(--mut)}
+dl{margin:12px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px}dt{color:var(--mut)}dd{margin:0;overflow-wrap:anywhere}
+.bar{height:10px;background:var(--bot);border-radius:99px;overflow:hidden;margin:14px 0 6px}.bar i{display:block;height:100%;background:var(--wait)}
+.steps{list-style:none;margin:0;padding:0}.steps li{position:relative;padding:0 0 18px 38px;color:var(--mut)}
+.steps li::before{content:"";position:absolute;left:11px;top:26px;bottom:0;width:2px;background:var(--line)}.steps li:last-child::before{display:none}
+.steps li i{position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;border:2px solid var(--line);background:var(--card);display:grid;place-items:center;font:700 13px var(--sans);font-style:normal}
+.steps li.done{color:var(--txt)}.steps li.done i{background:var(--ok);border-color:var(--ok);color:#fff}
+.steps li.on{color:var(--txt);font-weight:700}.steps li.on i{border-color:var(--pri);background:var(--priBg);color:var(--pri)}
+.steps li.on.wait i{border-color:var(--wait);background:var(--waitBg);color:var(--wait)}
+.steps small{display:block;font-weight:400;color:var(--mut);font-size:14px}.steps a{color:var(--pri)}
+details{font-size:15px}summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--mut)}
+#calls{font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;color:var(--mut);margin:8px 0;padding:10px;border:1px dashed var(--line);border-radius:10px;max-height:150px;overflow:auto;white-space:pre-wrap}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+@media print{.top,#next,.chat,aside,.acts,.note{display:none!important}main{display:block}#letterText{border:0;max-height:none}}
+</style></head><body>
+<header class="top"><b>Escalation Agent</b><span>Complaint help, step by step</span><button class="ghost" id="mute" aria-pressed="true">Voice on</button></header>
+<main>
+<section class="card" id="next" aria-live="polite"></section>
+<section class="card" id="letterBox"><h2>Your letter</h2>
+<p class="note" id="letterEmpty">Your letter will appear here once I have the details of your problem.</p>
+<div id="letterDoc" hidden><div id="letterText"></div>
+<div class="acts"><button class="pri" id="copy">Copy letter</button><button class="ghost" id="wa">WhatsApp</button><button class="ghost" id="mail">Email</button><button class="ghost" id="pdf">Save as PDF</button><button class="ghost" id="edit">Edit</button></div>
+<p class="note">This is a draft for you to send. We never send anything on your behalf. It's not legal advice.</p></div></section>
+<section class="card chat" aria-label="Conversation"><div id="log" aria-live="polite"></div><div id="voice" class="vbar" hidden></div><div class="chips" id="chips"></div>
+<div class="row"><button class="ic" id="mic" aria-label="Speak"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12z"/></svg></button>
+<input id="in" placeholder="Describe what went wrong" autocomplete="off" aria-label="Message"><button class="pri" id="go">Send</button></div></section>
+<aside>
+<section class="card" id="case" hidden></section>
+<section class="card"><h2>Where your case stands</h2><ol class="steps" id="ladder"></ol>
+<p class="note">Reply windows are typical timeframes. Check each official site before relying on a deadline.</p>
+<details id="hist" hidden><summary>Case history</summary><ul id="tl" class="note"></ul></details></section>
+<details class="card" id="demo"><summary>Demo mode</summary><p class="note" id="mcp">Server: checking</p><button class="ghost" data-q="skip ahead 8 days">Skip 8 days</button><pre id="calls">No calls yet.</pre></details>
+</aside></main>
+<script>
+const $=id=>document.getElementById(id),log=$("log"),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let awaitName=true,userName="",caseId=null,lastStatus=null,done=false,voice=true,caseEndState=null,info={},lastR=null,caseStart=0,winStart=0,winTotal=0,prevStatus=null,lastStage=null;
+const STEPS=[["seller","Ask the seller",""],["grievance","Escalate to the company's grievance officer",""],["helpline","National Consumer Helpline","https://consumerhelpline.gov.in"],["commission","Consumer Commission","https://edaakhil.nic.in"]];
+const LABEL={collecting:["Getting details",""],drafting:["Writing letter",""],draft_ready:["Letter ready",""],waiting:["Waiting for reply","wait"],escalating:["Escalating",""],gate:["Your decision",""],ready_to_file:["Ready to file",""],resolved:["Resolved","ok"],closed:["Stopped","mut"]};
+const CHIPS=[["I sent it","I sent it",["draft_ready"]],["They replied","they replied",["waiting"]],["Show letter","show my letter",["draft_ready","waiting","gate","ready_to_file","closed"]],["File it","file it",["gate"]],["It's resolved","it is resolved",["draft_ready","waiting","gate"]],["Reopen","reopen",["closed"]],["Stop","stop",["draft_ready","waiting","gate"],"stop"]];
+const STARTERS=[["Broken earbuds from Amazon","My earbuds from Amazon arrived broken, order OD-12345, Rs 2499"],["Refund never came","I returned my shoes to Flipkart but the refund never came, order OD-67890, Rs 3499"]];
+const dt=d=>new Date(caseStart+d*864e5).toLocaleDateString("en-IN",{day:"numeric",month:"short"});
+function add(t,c){const d=document.createElement("div");d.className="m "+c;d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+function vb(t){$("voice").textContent=t;$("voice").hidden=!t}
+function speak(t){if(!voice||!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.onstart=()=>vb("Speaking...");u.onend=u.onerror=()=>vb("");speechSynthesis.speak(u)}
+function logCall(tool,args){const c=$("calls");if(c.textContent==="No calls yet.")c.textContent="";c.textContent+=`> ${tool} ${JSON.stringify(args||{})}\n`;c.scrollTop=c.scrollHeight}
+function ping(){fetch("/").then(r=>{$("mcp").textContent=r.ok?"Server: connected":"Server: offline"}).catch(()=>{$("mcp").textContent="Server: offline"})}
+async function callUnderstand(message){
+ const body={message,case_id:caseId,status:lastStatus,awaiting_name:awaitName,name:userName||undefined};
+ const t=add("...","bot typing");
+ try{const r=await fetch("/api/understand",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok){$("mcp").textContent="Server: offline";throw new Error("request failed")}
+  return await r.json()}finally{t.remove()}}
+function classifyEndState(status){status=status||"";
+ if(/ready_to_file/.test(status))return"filed";if(/closed/.test(status))return"stopped";if(/resolved/.test(status))return"resolved";return null}
+const STALE_REPLIES={
+ filed:{sent:"There's nothing left to send — this case already went all the way to filing.",resolved:"This one already went all the way to filing — resolving it now wouldn't undo that.",stop:"This case is already closed — it was filed, not stopped.",file:"This case is already filed and ready to go."},
+ stopped:{sent:"You stopped this case earlier, so there's nothing to send.",resolved:"This case was stopped, not resolved — there's nothing more to mark here.",stop:"This one's already stopped.",file:"This case was stopped before filing, so there's nothing to file."},
+ resolved:{sent:"This case is already marked resolved — no need to send anything.",resolved:"Good to know, but this one's already marked resolved.",stop:"This case resolved on its own — no need to stop it.",file:"This case was resolved, so it never needs filing."}};
+function detectAction(text){const t=text.toLowerCase();
+ if(/\bfile\b/.test(t))return"file";if(/\bstop\b/.test(t))return"stop";
+ if(/\b(resolved|fixed|refund(ed)?)\b/.test(t))return"resolved";
+ if(/\b(sent|mailed|emailed|submitted|replied|responded)\b/.test(t))return"sent";return null}
+function staleCaseReply(text,endState){const a=detectAction(text);
+ if(endState&&a&&STALE_REPLIES[endState]&&STALE_REPLIES[endState][a])return STALE_REPLIES[endState][a];
+ return"This case is finished. Describe a new problem in a full sentence to start another."}
+function nextCard(r){
+ const s=r&&r.status,left=r?r.days_left:0,st=r&&r.stage?r.stage:"the seller";
+ const M={collecting:["","Tell me what happened","Share what you bought, where, and what went wrong. I'll ask for anything missing."],
+ drafting:["","Writing your letter","One moment."],escalating:["","Writing your next letter","One moment."],
+ draft_ready:["","Next step: send this letter","Send it to "+st+" by email or WhatsApp. Then tap “I've sent it” and I'll start tracking the reply window.","I've sent it","I sent it"],
+ waiting:["wait","Nothing to do for "+left+(left===1?" day":" days"),"I'm tracking the reply window and your case is saved. If they reply, let me know.","They replied","they replied"],
+ gate:["","Time to decide: file a formal case?","The problem isn't fixed yet. I can prepare your case file with the full history attached.","Prepare my case file","file it"],
+ ready_to_file:["","Your case file is ready","Read it through, then file it yourself on the official site."],
+ resolved:["ok","Resolved. Glad it's sorted.","Nothing more to do. Your history is saved."],
+ closed:["mut","Case stopped","I won't send reminders. You can reopen it whenever you like.","Reopen","reopen"]};
+ const m=M[s]||["","You're not alone in this","Tell me what went wrong and I'll write each letter, track the reply window, and move your case up the ladder until it's fixed."];
+ const n=$("next");n.className="card "+m[0];
+ n.innerHTML=`<h1>${esc(m[1])}</h1><p>${esc(m[2])}</p>`+(m[3]?`<button class="pri" data-q="${esc(m[4])}">${esc(m[3])}</button>`:"")}
+function caseCard(r){
+ const c=$("case");if(!r||!r.status){c.hidden=true;return}c.hidden=false;
+ const L=LABEL[r.status]||["Open",""],rows=[["Item",info.product],["Platform",info.platform],["Order ID",info.order_id],["Amount",info.amount]].filter(x=>x[1]);
+ let h=`<h2>Your case <span class="badge ${L[1]}">${L[0]}</span></h2>`;
+ if(rows.length)h+="<dl>"+rows.map(x=>`<dt>${x[0]}</dt><dd>${esc(x[1])}</dd>`).join("")+"</dl>";
+ if(r.status==="waiting"&&winTotal){const e=Math.max(0,Math.min(winTotal,r.day-winStart));
+  h+=`<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${winTotal}" aria-valuenow="${e}"><i style="width:${e/winTotal*100}%"></i></div><p class="note">Day ${e} of ${winTotal} · ${r.days_left} ${r.days_left===1?"day":"days"} left · reply due by ${dt(r.day+r.days_left)}</p>`}
+ c.innerHTML=h}
+function ladder(r){
+ const L=$("ladder");if(!r||!r.stage){L.innerHTML=STEPS.map((s,n)=>`<li><i>${n+1}</i>${s[1]}</li>`).join("");return}
+ const i=STEPS.findIndex(k=>r.stage.toLowerCase().includes(k[0])),w=r.status==="waiting";
+ L.innerHTML=STEPS.map((s,n)=>{const d=n<i||r.status==="resolved",o=n===i&&!d;
+  let sub=o&&w?`<small>Sent ${dt(winStart)} · reply due ${dt(r.day+r.days_left)}</small>`:"";
+  if(s[2]&&(o||d))sub+=`<small><a href="${s[2]}" target="_blank" rel="noopener">Official site</a></small>`;
+  return `<li class="${d?"done":o?"on"+(w?" wait":""):""}"><i>${d?"✓":n+1}</i>${s[1]}${sub}</li>`}).join("");
+ const t=r.timeline||[];$("hist").hidden=!t.length;$("tl").innerHTML=t.map(x=>`<li>${esc(x)}</li>`).join("")}
+function chips(){
+ const b=[];
+ if(!caseId&&awaitName)b.push(["Skip","skip"]);else if(!caseId)STARTERS.forEach(s=>b.push(s));
+ CHIPS.forEach(k=>{if(caseId&&lastStatus&&k[2].includes(lastStatus))b.push([k[0],k[1],k[3]])});
+ $("chips").innerHTML=b.map(k=>`<button data-q="${esc(k[1])}"${k[2]?` class="${k[2]}"`:""}>${esc(k[0])}</button>`).join("")}
+function render(r){lastR=r;nextCard(r);caseCard(r);ladder(r);chips()}
+function showLetter(t){$("letterText").textContent=t;$("letterEmpty").hidden=true;$("letterDoc").hidden=false}
+function resetCase(){caseId=null;done=false;lastStatus=null;caseEndState=null;info={};prevStatus=null;lastStage=null;$("letterDoc").hidden=true;$("letterEmpty").hidden=false;render(null)}
+function showResult(r,force){
+ if(r.case_id&&r.case_id!==caseId){caseId=r.case_id;caseStart=Date.now()-(r.day||0)*864e5}
+ if(r.tool==="start_case"&&r.args)info={...info,...r.args};
+ if(r.status){lastStatus=r.status;done=/resolved|closed|ready_to_file/.test(r.status);if(done)caseEndState=classifyEndState(r.status);
+  if(r.status==="waiting"&&(prevStatus!=="waiting"||r.stage!==lastStage)){winStart=r.day;winTotal=r.days_left}
+  prevStatus=r.status;lastStage=r.stage||lastStage}
+ if(r.tool)logCall(r.tool,r.args);
+ const shownDraft=r.draft&&(force||/draft_ready|ready_to_file/.test(r.status||""));
+ const msg=(force&&shownDraft)?"Here's your letter — check it on the left.":(r.say||"Done.");
+ add(msg,"bot");speak(msg);
+ if(shownDraft)showLetter(r.draft);
+ render(r)}
+
+const SHOW_OLD=/\b(letter|draft|show)\b/i;
+const STALE_CMD=/\b(sent|mailed|emailed|submitted|resolved|refund(ed)?|fixed|file|stop|skip|advance|\d+\s*days?|replied|responded)\b/i;
+const REOPEN=/\b(reopen|re-?open|look into it again|same issue again|continue (this|it))\b/i;
+async function handle(text){
+ text=text.trim();if(!text)return;add(text,"me");
+ const forceShow=SHOW_OLD.test(text);
+ try{
+  if(caseId&&done){
+   if(forceShow){showResult(await callUnderstand(text),true);return}
+   if(REOPEN.test(text)){showResult(await callUnderstand(text));return}
+   if(STALE_CMD.test(text)){add(staleCaseReply(text,caseEndState),"bot");return}
+   resetCase()}
+  const r=await callUnderstand(text);
+  if("name" in r){
+   awaitName=false;
+   if(r.name){userName=r.name;const m="Nice to meet you, "+userName+". Now tell me what went wrong, like: my earbuds from Amazon arrived broken, order OD-12345, Rs 2499.";add(m,"bot");speak(m)}
+   else add("No problem, I'll leave the name blank. Tell me what went wrong, like: my earbuds from Amazon arrived broken, order OD-12345, Rs 2499.","bot");
+   chips();return}
+  showResult(r,forceShow)
+ }catch(e){add("I couldn't reach the server. Is it running on this address?","bot")}}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;const q=b.dataset.q;if(q==="stop"&&!confirm("Stop this case? Your history stays saved."))return;if(q==="they replied"){add(q,"me");add("Did they fix it? If yes, tap “It's resolved”. If not, you don't need to do anything yet. When the reply window ends I'll move your case up the ladder.","bot");return}handle(q)});
+$("go").onclick=()=>{const v=$("in").value;$("in").value="";handle(v)};
+$("in").onkeydown=e=>{if(e.key==="Enter")$("go").click()};
+$("mute").onclick=e=>{voice=!voice;e.target.textContent=voice?"Voice on":"Voice off";e.target.setAttribute("aria-pressed",voice);if(!voice){speechSynthesis.cancel();vb("")}};
+const LT=()=>$("letterText").innerText;
+$("copy").onclick=e=>{navigator.clipboard.writeText(LT()).then(()=>{e.target.textContent="Copied";setTimeout(()=>e.target.textContent="Copy letter",1500)})};
+$("wa").onclick=()=>open("https://wa.me/?text="+encodeURIComponent(LT()),"_blank");
+$("mail").onclick=()=>{location.href="mailto:?subject="+encodeURIComponent("Complaint about "+(info.product||"my order"))+"&body="+encodeURIComponent(LT())};
+$("pdf").onclick=()=>print();
+$("edit").onclick=e=>{const t=$("letterText"),on=t.contentEditable!=="true";t.contentEditable=on;e.target.textContent=on?"Done editing":"Edit";if(on)t.focus()};
+$("demo").ontoggle=ping;ping();
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR){$("mic").disabled=true;$("mic").title="Speech recognition needs Chrome or Edge"}
+else{
+ const r=new SR();r.lang="en-IN";r.interimResults=true;
+ let on=false,handled=false;
+ r.onresult=e=>{
+  const last=e.results[e.results.length-1];
+  if(!last.isFinal){$("in").value=last[0].transcript;return}
+  if(handled)return;handled=true;$("in").value="";handle(last[0].transcript);r.stop()};
+ r.onstart=()=>{handled=false;vb("Listening...")};
+ r.onend=r.onerror=()=>{on=false;$("mic").classList.remove("on");if($("voice").textContent==="Listening...")vb("")};
+ $("mic").onclick=()=>{if(on)return r.stop();on=true;$("mic").classList.add("on");r.start()};
+}
+render(null);
+add("I'm sorry you're dealing with this. Let's sort it out together. What name should I sign your letters with? (Tap Skip to leave it blank.)","bot");
+</script></body></html>

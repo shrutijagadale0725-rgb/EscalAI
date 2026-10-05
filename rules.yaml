@@ -1,0 +1,43 @@
+# Verified against public sources on 2026-09-29. See the source notes on each stage.
+# This tool drafts messages and tracks deadlines. It is not legal advice.
+disclaimer: "This tool drafts messages and tracks deadlines. It is not legal advice."
+stages:
+  - id: seller
+    name: seller support
+    window_days: 7
+    verified: true
+    note: >
+      No legally fixed window for direct seller/platform-support contact — this is a
+      practical default, not a legal requirement. Each platform sets its own return/
+      refund policy (commonly 7-10 days); check the specific platform's stated policy
+      if you want a more accurate number for that seller.
+
+  - id: grievance_officer
+    name: the platform's grievance officer
+    window_days: 30
+    verified: true
+    note: >
+      Consumer Protection (E-Commerce) Rules, 2020: the grievance officer must
+      acknowledge a complaint within 48 hours and redress it within 1 month (30 days)
+      of receipt. The 48-hour acknowledgment is separate from this 30-day redress window.
+
+  - id: helpline
+    name: the National Consumer Helpline
+    window_days: 45
+    verified: true
+    note: >
+      NCH (part of INGRAM) aims to resolve grievances within about 45 days; convergence
+      partner companies are separately expected to respond within 30 days of a forwarded
+      complaint. Contact: call 1800-11-4000 or 1915, SMS/WhatsApp 8800001915, or file at
+      consumerhelpline.gov.in.
+
+  - id: commission
+    name: the Consumer Commission
+    is_filing: true
+    verified: true
+    note: >
+      File at e-Jagriti (e-jagriti.gov.in), the current portal (successor to e-Daakhil).
+      Which commission depends on claim value: up to Rs 50 lakh -> District Commission,
+      Rs 50 lakh to Rs 2 crore -> State Commission, above Rs 2 crore -> National Commission.
+      Filing fees and exact process still depend on claim value and jurisdiction; verify
+      current fees on e-jagriti.gov.in before filing.
