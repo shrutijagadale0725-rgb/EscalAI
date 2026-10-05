@@ -1,9 +1,7 @@
 import json
-
 import pytest
-
 from escalation_agent.service import CaseService
-
+from escalation_agent import nlu
 
 class Clock:
     def __init__(self):
@@ -158,3 +156,106 @@ def test_understand_route_matches_the_simulator_page(client):
     assert client.post("/api/understand", content='{"message":"hi"}', headers={"Content-Type": "text/plain"}).status_code == 415
     assert client.post("/api/understand", json={"message": "hi"}, headers={"Origin": "http://evil.example"}).status_code == 403
     assert client.post("/api/understand", json={"message": ""}).status_code == 400
+
+def _to_gate(svc, cid):
+    """Advance a fresh case all the way to the filing gate."""
+    svc.respond(cid, {"action": "sent"})
+    svc.respond(cid, {"action": "advance", "days": 8})   # clears seller's 7-day window
+    svc.respond(cid, {"action": "sent"})
+    svc.respond(cid, {"action": "advance", "days": 30})  # clears grievance officer's window
+    svc.respond(cid, {"action": "sent"})
+    svc.respond(cid, {"action": "advance", "days": 45})  # clears helpline's window -> gate
+
+
+def test_reopen_resumes_mid_ladder_stage(svc):
+    cid = ready(svc)["case_id"]
+    svc.respond(cid, {"action": "sent"})
+    assert svc.respond(cid, {"action": "stop"})["status"] == "closed"
+    v = svc.reopen(cid)
+    assert v["status"] == "draft_ready" and v["stage"] == "seller support"
+    assert "OD-1" in v["draft"]
+
+
+def test_reopen_refused_when_resolved_or_filed(svc):
+    cid = ready(svc)["case_id"]
+    svc.respond(cid, {"action": "sent"})
+    svc.respond(cid, {"action": "resolved"})
+    assert svc.reopen(cid) is None  # resolved, not stopped -- nothing to reopen
+
+    cid2 = ready(svc, order_id="OD-2")["case_id"]
+    _to_gate(svc, cid2)
+    svc.respond(cid2, {"action": "file"})
+    assert svc.reopen(cid2) is None  # filed, not stopped
+
+
+def test_reopen_at_filing_gate_reasks_instead_of_crashing(svc):
+    """Regression test: reopening a case stopped at the filing gate used to be
+    refused outright (that stage has no window_days for the normal draft/wait
+    replay to crash on). It now resumes straight back into the gate question."""
+    cid = ready(svc)["case_id"]
+    _to_gate(svc, cid)
+    assert svc.respond(cid, {"action": "stop"})["status"] == "closed"
+    v = svc.reopen(cid)
+    assert v["status"] == "gate" and "file or stop" in v["say"]
+    assert svc.respond(cid, {"action": "file"})["status"] == "ready_to_file"
+
+
+def test_regex_route_handles_existing_case_not_just_new_complaints():
+    """Regression test: regex_route once always returned start_case regardless of
+    case_id, because the case_id guard + its return were misplaced, leaving every
+    branch below (reopen/skip/resolved/sent/file/stop/show/get_next_step) dead code."""
+    tool, args = nlu.regex_route("stop", "c123", "waiting")
+    assert tool == "log_response" and args == {"case_id": "c123", "event": "stop"}
+
+    tool, args = nlu.regex_route("file it", "c123", "gate")
+    assert tool == "log_response" and args["event"] == "file"
+
+    tool, args = nlu.regex_route("show my letter", "c123", "draft_ready")
+    assert tool == "draft_escalation"
+
+    tool, args = nlu.regex_route("reopen it", "c123", "closed")
+    assert tool == "reopen_case" and args == {"case_id": "c123"}
+
+    tool, args = nlu.regex_route("get status", "c123", "waiting")
+    assert tool == "get_next_step"
+
+
+def test_extract_fields_never_returns_none():
+    """Regression test: extract_fields used to fall off the end without a return,
+    giving None whenever bare=False -- which crashed start_case's **-unpacking."""
+    out = nlu.extract_fields("my earbuds from Amazon arrived broken, Rs 2499")
+    assert out is not None and out["amount"] == "2499" and out["platform"] == "Amazon"
+
+    out2 = nlu.extract_fields("2499", bare=True)
+    assert out2.get("amount") == "2499"
+
+    assert nlu.extract_fields("nothing useful here") == {}
+
+
+def test_regex_route_new_complaint_strips_platform_and_facts_from_issue():
+    tool, args = nlu.regex_route("my earbuds from Amazon arrived broken, order OD-123, Rs 2499", None, None)
+    assert tool == "start_case"
+    assert args["product"] == "earbuds"
+    assert "OD-123" not in args["issue"] and "2499" not in args["issue"]
+
+
+def test_draft_escalation_includes_status_for_show_letter(client):
+    """Regression test: draft_escalation used to omit `status`, which made the
+    client's showResult() silently reset done=False after a 'show my letter'."""
+    body = {"product": "x", "issue": "y", "platform": "Amazon", "order_id": "OD-10", "amount": "9"}
+    cid = client.post("/api/tool/start_case", json=body).json()["case_id"]
+    r = client.post("/api/tool/draft_escalation", json={"case_id": cid})
+    d = r.json()
+    assert d["status"] == "draft_ready" and d["draft"]
+
+
+def test_reopen_case_tool_refuses_filed_case_without_losing_status(client):
+    """Regression test: reopen_case's failure reply also used to omit `status`,
+    which corrupted client state for everything typed after a failed reopen."""
+    body = {"product": "x", "issue": "y", "platform": "Amazon", "order_id": "OD-11", "amount": "9"}
+    cid = client.post("/api/tool/start_case", json=body).json()["case_id"]
+    client.post("/api/tool/log_response", json={"case_id": cid, "event": "sent"})
+    client.post("/api/tool/log_response", json={"case_id": cid, "event": "resolved"})
+    r = client.post("/api/tool/reopen_case", json={"case_id": cid})
+    d = r.json()
+    assert d["error"] == "cannot_reopen" and d["status"] == "resolved"

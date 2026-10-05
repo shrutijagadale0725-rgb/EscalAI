@@ -1,56 +1,70 @@
-# Consumer Escalation Agent
+# EscalAI — Consumer Escalation Agent
 
-A case manager for consumer complaints, exposed as an MCP server (Streamable HTTP).
-It walks a complaint up an escalation ladder (seller support, grievance officer,
-National Consumer Helpline, Consumer Commission), drafts each letter, waits out the
-reply window, and escalates with the full history attached. State is saved in SQLite,
-so a case survives restarts and days of waiting.
+A LangGraph-based case manager for consumer complaints, exposed as a self-hosted MCP server (Streamable HTTP) with a web-based simulator standing in for the Alexa+ voice experience.
 
-It drafts and tracks. It never sends anything. It is not legal advice.
+**It only drafts and tracks. It never sends anything on your behalf, and it is not legal advice.**
 
-## Run
+## What it does
 
-    python -m venv .venv && . .venv/bin/activate
-    pip install -r requirements.txt
-    python -m pytest -q
-    python -m escalation_agent.mcp_server      # MCP endpoint: http://127.0.0.1:8000/mcp
+Walks a consumer complaint through a four-stage escalation ladder:
 
-Then open http://127.0.0.1:8000/ for the voice simulator (chat box, mic button and spoken replies).
-The simulator calls the tool functions directly over a lightweight HTTP endpoint (`/api/understand`), so the
-browser demo needs no MCP session handling or SSE parsing. The actual MCP server — the one any real MCP client,
-including judges testing this submission, connects to — is the `/mcp` endpoint, built on the MCP Python SDK's
-Streamable HTTP transport (see `mcp_server.py`). The side panel shows each tool call made by the demo page.
-The mic uses the browser's built-in speech recognition (Chrome or Edge).
+1. **Seller support** — a direct complaint letter
+2. **The platform's grievance officer** — required acknowledgment/redress under the Consumer Protection (E-Commerce) Rules, 2020
+3. **The National Consumer Helpline** (1800-11-4000 / consumerhelpline.gov.in)
+4. **The Consumer Commission** — a formal filing at e-Jagriti (e-jagriti.gov.in), tiered by claim value (District / State / National Commission)
 
-Optional: set `GROQ_API_KEY` to have Groq polish the letters (falls back to templates).
+At each stage it drafts a letter, tracks the real reply-window deadline, and pauses for you to confirm you've sent it. If the window passes with no reply, it escalates automatically. You can stop a case at any point, or reopen a stopped case to pick back up from where you left it — including a case stopped right at the filing decision.
 
-## Tools
+## Why this architecture
 
-| Tool | What it does |
-|------|--------------|
-| `start_case` | Open a case; asks for any missing platform, order ID or amount |
-| `log_response` | Record `answer`, `sent`, `seller_replied`, `resolved`, `file` or `stop` |
-| `get_next_step` | Status, days left in the reply window, what is needed next (also re-reads the real clock and escalates when a window has passed) |
-| `draft_escalation` | The current letter or case file |
-| `simulate_days` | Demo only: adds days on top of the real elapsed time |
+Devpost's hackathon FAQ confirms Alexa+'s gated developer tools are **not available to participants** this cycle. A self-hosted MCP server plus your own web-based simulator is the explicitly sanctioned stand-in, judged on equal footing — so the "voice assistant" here is a browser page with mic input and speech output, talking to the same MCP tools an Alexa+ skill would call.
 
-Every reply includes a short `say` line meant to be spoken by a voice assistant.
+## How it understands you
 
-## Alexa+ track
+Free text goes through `/api/understand`, which tries Groq (an LLM) first for natural-language routing and field extraction, and silently falls back to deterministic regex matching if there's no `GROQ_API_KEY` set or the Groq call fails for any reason. The app is fully functional with zero API keys — Groq just makes it understand more varied phrasing.
 
-Alexa+ gated developer tools are not available to participants, so this is a self-hosted MCP
-server (Streamable HTTP) plus a web simulator that stands in for the voice experience.
-See `FRICTION_LOG.md`.
+## Running it
 
-## How it works
+```bash
+python -m venv .venv
+.venv\Scripts\activate        # Windows; use `source .venv/bin/activate` on Mac/Linux
+pip install -r requirements.txt
+python -m escalation_agent.mcp_server
+```
 
-Each case is one LangGraph thread. Every wait (missing details, "have you sent it?",
-the reply window, the "is filing worth it?" gate) is an interrupt, and progress is
-checkpointed with `SqliteSaver`. The clock only starts once the user confirms the
-letter was sent. Case days are real elapsed days plus any demo skew.
+Then open **http://127.0.0.1:8000** in a browser.
 
-## Status
+Optional, for better natural-language understanding:
+```bash
+$env:GROQ_API_KEY="your-key-here"     # PowerShell
+$env:GROQ_MODEL="openai/gpt-oss-120b" # optional override
+```
 
-- Stage windows in `rules.yaml` are **unverified placeholders**. Check each against the
-  official source before relying on them.
-- Groq polishing is implemented but not tested against the live API.
+## MCP tools exposed
+
+| Tool | Purpose |
+|---|---|
+| `start_case` | Open a new complaint case |
+| `log_response` | Record sent/replied/resolved/file/stop events |
+| `get_next_step` | Current status and days left in the reply window |
+| `draft_escalation` | Re-fetch the current letter/case file |
+| `simulate_days` | **Demo only** — fast-forward the case clock |
+| `reopen_case` | Resume a case you previously stopped |
+
+## Testing
+
+```bash
+pytest -v
+```
+
+Covers the full escalation ladder, real-clock vs. simulated-clock behavior, the MCP Streamable HTTP endpoint end-to-end, the HTTP API's security hardening (origin checks, content-type checks), and regression tests for every bug found during development (see `FRICTION_LOG.md`).
+
+## Disclaimer
+
+This tool drafts messages and tracks deadlines. It is not legal advice. Stage windows in `rules.yaml` are verified against public sources as of the dates noted there — always confirm current rules/fees on the official sites (e-jagriti.gov.in, consumerhelpline.gov.in) before relying on a deadline or filing.
+
+## License
+
+MIT — see `LICENSE`.
+
+Repo: https://github.com/shrutijagadale0725-rgb/EscalAI
