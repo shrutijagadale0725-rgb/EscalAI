@@ -20,9 +20,12 @@ def draft_letter(s, stage, sender="[Your name]"):
     if sid == "seller":
         return (
             f"Subject: Complaint about {s['product']}, order {s['order_id']}\n\n"
-            f"Hello,\n\nI ordered {s['product']} on {s['platform']} ({facts}). {s['issue']}\n\n"
-            f"Please refund the full amount or send a replacement within {stage['window_days']} days. "
-            f"My photos and invoice are attached.\n\nRegards,\n{sender}"
+            f"Dear Customer Service Team,\n\n"
+            f"I am writing to report a problem with my recent order of {s['product']} "
+            f"on {s['platform']} ({facts}). {_sentence(s['issue'])}.\n\n"
+            f"I would appreciate a full refund or a replacement within {stage['window_days']} days. "
+            f"Photos and the invoice are attached for your reference.\n\n"
+            f"Regards,\n{sender}"
         )
     if sid == "grievance_officer":
         return (
@@ -99,3 +102,7 @@ def make_polisher():
         return out if all(m in out for m in (s["order_id"], str(s["amount"]))) else text
 
     return polish
+
+def _sentence(text):
+    text = (text or "").strip().rstrip(".!")
+    return (text[:1].upper() + text[1:]) if text else text

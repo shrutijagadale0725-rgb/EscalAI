@@ -46,20 +46,43 @@ class CaseService:
         rules_path = rules_path or Path(__file__).resolve().parent.parent / "rules.yaml"
         self.rules = yaml.safe_load(Path(rules_path).read_text())
         self.clock = clock
-        saver = SqliteSaver(sqlite3.connect(db_path, check_same_thread=False))
+        self._conn = sqlite3.connect(db_path, check_same_thread=False)
+        self._conn.execute(
+            "CREATE TABLE IF NOT EXISTS case_index (case_id TEXT PRIMARY KEY, name TEXT, "
+            "product TEXT, platform TEXT, order_id TEXT, amount TEXT, created_at REAL)")
+        self._conn.commit()
+        saver = SqliteSaver(self._conn)
         self.graph = build_graph(self.rules, saver, make_polisher() if polish == "auto" else polish, clock)
 
     def _cfg(self, case_id):
         return {"configurable": {"thread_id": case_id}}
 
     def start(self, product, issue, platform="", order_id="", amount="", purchase_date="", name=""):
+        platform = _tidy_platform(platform)
+        order_id = order_id.strip()
+        amount = _tidy_amount(amount)
+
+        # Reuse an existing open case for the same order instead of creating a duplicate.
+        existing = self._conn.execute(
+            "SELECT case_id FROM case_index WHERE product=? AND platform=? AND order_id=? "
+            "ORDER BY created_at DESC LIMIT 1",
+            (product.strip(), platform, order_id)).fetchone()
+        if existing:
+            v = self.view(existing[0])
+            if v and v["status"] not in DONE:
+                return v   # resume the live case instead of starting a new one
+
         cid = "c" + uuid.uuid4().hex[:12]
         state = {"case_id": cid, "product": product.strip(), "issue": issue.strip(),
-                 "platform": _tidy_platform(platform), "order_id": order_id.strip(),
-                 "amount": _tidy_amount(amount), "purchase_date": purchase_date.strip(), "name": name.strip(),
-                 "stage": 0, "day": 0, "stage_start": 0, "created_at": self.clock(), "skew": 0, "sent": False, "draft": "",
-                 "timeline": ["Day 0 · Case opened"], "status": "collecting"}
+                "platform": platform, "order_id": order_id,
+                "amount": amount, "purchase_date": purchase_date.strip(), "name": name.strip(),
+                "stage": 0, "day": 0, "stage_start": 0, "created_at": self.clock(), "skew": 0, "sent": False, "draft": "",
+                "timeline": ["Day 0 · Case opened"], "status": "collecting"}
         self.graph.invoke(state, self._cfg(cid))
+        self._conn.execute(
+            "INSERT INTO case_index (case_id, name, product, platform, order_id, amount, created_at) VALUES (?,?,?,?,?,?,?)",
+            (cid, name.strip(), product.strip(), platform, order_id, amount, self.clock()))
+        self._conn.commit()
         return self.view(cid)
 
     def respond(self, case_id, payload):
@@ -137,3 +160,17 @@ class CaseService:
         if s == "closed":
             return "Case closed without filing."
         return ask or "Working on it."
+
+    def list_cases(self, limit=20):
+        """Past cases, most recent first, with their live status."""
+        rows = self._conn.execute(
+            "SELECT case_id, name, product, platform, order_id, amount FROM case_index "
+            "ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
+        out = []
+        for cid, name, product, platform, order_id, amount in rows:
+            v = self.view(cid)
+            if not v:
+                continue
+            out.append({"case_id": cid, "name": name, "product": product, "platform": platform,
+                        "order_id": order_id, "amount": amount, "status": v["status"], "stage": v["stage"]})
+        return out

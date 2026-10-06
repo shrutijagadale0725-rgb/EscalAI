@@ -166,16 +166,32 @@ def understand(message, case_id, status, awaiting_name):
     """Returns ('__name__', {'name': str|None}) during the name step, else (tool_name, args)."""
     key, model = os.getenv("GROQ_API_KEY"), os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     if awaiting_name:
+        name, got_name = None, False
         if key:
             try:
-                return "__name__", {"name": groq_name(message, key, model)}
+                name, got_name = groq_name(message, key, model), True
             except Exception:
                 pass
-        name = regex_name(message)
-        return "__name__", {"name": None if name == "SKIP" else name}
+        if not got_name:
+            r = regex_name(message)
+            name = None if r == "SKIP" else r
+
+        # The same message may also describe the problem -- don't discard that.
+        if COMPLAINT.search(message) or extract_fields(message):
+            try:
+                tool, args = (groq_route(message, None, None, key, model) if key
+                              else regex_route(message, None, None))
+            except Exception:
+                tool, args = regex_route(message, None, None)
+            if tool == "start_case":
+                if name:
+                    args["name"] = name
+                return tool, args
+
+        return "__name__", {"name": name}
     if key:
         try:
             return groq_route(message, case_id, status, key, model)
         except Exception:
-            pass  # any Groq failure (network, bad json, unknown tool) falls back silently
+            pass
     return regex_route(message, case_id, status)

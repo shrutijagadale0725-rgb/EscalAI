@@ -56,6 +56,10 @@ def draft_escalation(case_id: str) -> dict:
     v = svc.view(case_id)
     return v if v else NOT_FOUND
 
+@mcp.tool()
+def list_cases(limit: int = 20) -> dict:
+    """List past cases, most recent first."""
+    return {"cases": svc.list_cases(limit)}
 
 @mcp.tool()
 def simulate_days(case_id: str, days: int = 8) -> dict:  # days is validated by MCP; HTTP path is sanitised in the service
@@ -74,7 +78,7 @@ def reopen_case(case_id: str) -> dict:
     return {**current, "error": "cannot_reopen",
             "say": "I can't reopen that one — it either resolved or was already filed, not stopped."}
 
-TOOLS = {f.__name__: f for f in (start_case, log_response, get_next_step, draft_escalation, simulate_days, reopen_case)}
+TOOLS = {f.__name__: f for f in (start_case, log_response, get_next_step, draft_escalation, simulate_days, reopen_case, list_cases)}
 WEB = Path(__file__).resolve().parent.parent / "web"
 
 

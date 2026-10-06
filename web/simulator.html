@@ -3,6 +3,11 @@
 <title>Escalation Agent - consumer complaint help</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+#caseList{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+#caseList button{width:100%;text-align:left;border-radius:10px;display:flex;align-items:center;gap:8px;min-height:44px;overflow:hidden}
+#caseList button .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+#caseList button .badge{flex-shrink:0}
+#caseList button.active{border-color:var(--pri);color:var(--pri)}
 :root{--bg:#faf8f5;--card:#fff;--txt:#1f2933;--mut:#5b6670;--line:#e7e2da;--pri:#0f766e;--onpri:#fff;--priBg:#e6f4f2;--wait:#b45309;--waitBg:#fef3e2;--ok:#15803d;--okBg:#e8f5ec;--bad:#b91c1c;--bot:#f1eee8;
 --sans:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--serif:Georgia,"Times New Roman",serif}
 @media(prefers-color-scheme:dark){:root{--bg:#12171a;--card:#1a2125;--txt:#e8edf0;--mut:#a7b3bb;--line:#2d373d;--pri:#2dd4bf;--onpri:#04201d;--priBg:#10302d;--wait:#fbbf24;--waitBg:#2b2210;--ok:#4ade80;--okBg:#10261a;--bad:#f87171;--bot:#222b30}}
@@ -53,7 +58,7 @@ details{font-size:15px}summary{cursor:pointer;min-height:44px;display:flex;align
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 @media print{.top,#next,.chat,aside,.acts,.note{display:none!important}main{display:block}#letterText{border:0;max-height:none}}
 </style></head><body>
-<header class="top"><b>Escalation Agent</b><span>Complaint help, step by step</span><button class="ghost" id="mute" aria-pressed="true">Voice on</button></header>
+<header class="top"><b>Escalation Agent</b><span>Complaint help, step by step</span><button class="ghost" id="newCase">New complaint</button><button class="ghost" id="mute" aria-pressed="true">Voice on</button></header>
 <main>
 <section class="card" id="next" aria-live="polite"></section>
 <section class="card" id="letterBox"><h2>Your letter</h2>
@@ -66,6 +71,7 @@ details{font-size:15px}summary{cursor:pointer;min-height:44px;display:flex;align
 <input id="in" placeholder="Describe what went wrong" autocomplete="off" aria-label="Message"><button class="pri" id="go">Send</button></div></section>
 <aside>
 <section class="card" id="case" hidden></section>
+<section class="card"><h2>Your cases</h2><ul id="caseList"><li class="note">No cases yet.</li></ul></section>
 <section class="card"><h2>Where your case stands</h2><ol class="steps" id="ladder"></ol>
 <p class="note">Reply windows are typical timeframes. Check each official site before relying on a deadline.</p>
 <details id="hist" hidden><summary>Case history</summary><ul id="tl" class="note"></ul></details></section>
@@ -74,7 +80,7 @@ details{font-size:15px}summary{cursor:pointer;min-height:44px;display:flex;align
 <script>
 const $=id=>document.getElementById(id),log=$("log"),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let awaitName=true,userName="",caseId=null,lastStatus=null,done=false,voice=true,caseEndState=null,info={},lastR=null,caseStart=0,winStart=0,winTotal=0,prevStatus=null,lastStage=null;
-const STEPS=[["seller","Ask the seller",""],["grievance","Escalate to the company's grievance officer",""],["helpline","National Consumer Helpline","https://consumerhelpline.gov.in"],["commission","Consumer Commission","https://edaakhil.nic.in"]];
+const STEPS=[["seller","Ask the seller",""],["grievance","Escalate to the company's grievance officer",""],["helpline","National Consumer Helpline","https://consumerhelpline.gov.in"],["commission","Consumer Commission","https://e-jagriti.gov.in"]];
 const LABEL={collecting:["Getting details",""],drafting:["Writing letter",""],draft_ready:["Letter ready",""],waiting:["Waiting for reply","wait"],escalating:["Escalating",""],gate:["Your decision",""],ready_to_file:["Ready to file",""],resolved:["Resolved","ok"],closed:["Stopped","mut"]};
 const CHIPS=[["I sent it","I sent it",["draft_ready"]],["They replied","they replied",["waiting"]],["Show letter","show my letter",["draft_ready","waiting","gate","ready_to_file","closed"]],["File it","file it",["gate"]],["It's resolved","it is resolved",["draft_ready","waiting","gate"]],["Reopen","reopen",["closed"]],["Stop","stop",["draft_ready","waiting","gate"],"stop"]];
 const STARTERS=[["Broken earbuds from Amazon","My earbuds from Amazon arrived broken, order OD-12345, Rs 2499"],["Refund never came","I returned my shoes to Flipkart but the refund never came, order OD-67890, Rs 3499"]];
@@ -138,11 +144,49 @@ function chips(){
  CHIPS.forEach(k=>{if(caseId&&lastStatus&&k[2].includes(lastStatus))b.push([k[0],k[1],k[3]])});
  $("chips").innerHTML=b.map(k=>`<button data-q="${esc(k[1])}"${k[2]?` class="${k[2]}"`:""}>${esc(k[0])}</button>`).join("")}
 function render(r){lastR=r;nextCard(r);caseCard(r);ladder(r);chips()}
+async function loadCaseList(){
+ try{
+  const r=await fetch("/api/tool/list_cases",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+  const d=await r.json();
+  const items=d.cases||[];
+  const L=$("caseList");
+  if(!items.length){L.innerHTML='<li class="note">No cases yet.</li>';return}
+  L.innerHTML=items.map(c=>{
+   const lbl=LABEL[c.status]||[c.status,""];
+  return `<li><button class="ghost${c.case_id===caseId?" active":""}" data-case='${esc(JSON.stringify(c))}'>`+
+       `<span class="name">${esc(c.product||"Case")} · ${esc(c.platform||"")}</span>`+
+       `<span class="badge ${esc(lbl[1])}">${esc(lbl[0])}</span></button></li>`;
+  }).join("")
+ }catch(e){}}
+async function switchCase(meta){
+ const r=await fetch("/api/tool/get_next_step",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({case_id:meta.case_id})});
+ if(!r.ok)return;
+ const v=await r.json();
+ prevStatus=null;lastStage=null;caseEndState=null;
+ info={product:meta.product,platform:meta.platform,order_id:meta.order_id,amount:meta.amount};
+ userName=meta.name||"";awaitName=false;
+ log.innerHTML="";
+ add(`Switched to your ${meta.product} case.`,"bot");
+ showResult(v,false);
+ loadCaseList()}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-case]");if(b)switchCase(JSON.parse(b.dataset.case))});
 function showLetter(t){$("letterText").textContent=t;$("letterEmpty").hidden=true;$("letterDoc").hidden=false}
 function resetCase(){caseId=null;done=false;lastStatus=null;caseEndState=null;info={};prevStatus=null;lastStage=null;$("letterDoc").hidden=true;$("letterEmpty").hidden=false;render(null)}
+function startNewCase(){
+ if(window.speechSynthesis)speechSynthesis.cancel();
+ resetCase();
+ awaitName=true;userName="";
+ log.innerHTML="";
+ vb("");
+ const m="I'm sorry you're dealing with this. Let's sort it out together. What name should I sign your letters with? (Tap Skip to leave it blank.)";
+ add(m,"bot");speak(m);
+ chips();
+ loadCaseList()}
+$("newCase").onclick=startNewCase;
 function showResult(r,force){
  if(r.case_id&&r.case_id!==caseId){caseId=r.case_id;caseStart=Date.now()-(r.day||0)*864e5}
- if(r.tool==="start_case"&&r.args)info={...info,...r.args};
+ if(r.tool==="start_case"&&r.args){info={...info,...r.args};if(r.args.name)userName=r.args.name;awaitName=false}
+ if(r.tool==="start_case")loadCaseList();
  if(r.status){lastStatus=r.status;done=/resolved|closed|ready_to_file/.test(r.status);if(done)caseEndState=classifyEndState(r.status);
   if(r.status==="waiting"&&(prevStatus!=="waiting"||r.stage!==lastStage)){winStart=r.day;winTotal=r.days_left}
   prevStatus=r.status;lastStage=r.stage||lastStage}
@@ -198,5 +242,6 @@ else{
  $("mic").onclick=()=>{if(on)return r.stop();on=true;$("mic").classList.add("on");r.start()};
 }
 render(null);
+loadCaseList();
 add("I'm sorry you're dealing with this. Let's sort it out together. What name should I sign your letters with? (Tap Skip to leave it blank.)","bot");
 </script></body></html>
