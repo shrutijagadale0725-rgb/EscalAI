@@ -87,7 +87,52 @@ const STARTERS=[["Broken earbuds from Amazon","My earbuds from Amazon arrived br
 const dt=d=>new Date(caseStart+d*864e5).toLocaleDateString("en-IN",{day:"numeric",month:"short"});
 function add(t,c){const d=document.createElement("div");d.className="m "+c;d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
 function vb(t){$("voice").textContent=t;$("voice").hidden=!t}
-function speak(t){if(!voice||!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.onstart=()=>vb("Speaking...");u.onend=u.onerror=()=>vb("");speechSynthesis.speak(u)}
+let bestVoice=null;
+function pickVoice(){
+ const vs=speechSynthesis.getVoices();
+ if(!vs.length)return null;
+ const pref=[
+  v=>/en-US/i.test(v.lang)&&/Google US English/i.test(v.name),
+  v=>/en-GB/i.test(v.lang)&&/Google UK English Female/i.test(v.name),
+  v=>/en-IN/i.test(v.lang)&&/(Online|Natural)/i.test(v.name),
+  v=>/en-US/i.test(v.lang)&&/(Online|Natural)/i.test(v.name),
+  v=>/^Google/i.test(v.name),
+  v=>/(Online|Natural)/i.test(v.name),
+  v=>/^en/i.test(v.lang)
+ ];
+ for(const test of pref){const m=vs.find(test);if(m)return m}
+ return vs[0]}
+if(window.speechSynthesis){
+ bestVoice=pickVoice();
+ speechSynthesis.onvoiceschanged=()=>{bestVoice=pickVoice()};
+}
+   function pickVoice(){
+    const vs=speechSynthesis.getVoices();
+    if(!vs.length)return null;
+    const pref=[
+     v=>/en-US/i.test(v.lang)&&/Google US English/i.test(v.name),
+     v=>/en-GB/i.test(v.lang)&&/Google UK English Female/i.test(v.name),
+     v=>/en-IN/i.test(v.lang)&&/(Online|Natural)/i.test(v.name),
+     v=>/en-US/i.test(v.lang)&&/(Online|Natural)/i.test(v.name),
+     v=>/^Google/i.test(v.name),
+     v=>/(Online|Natural)/i.test(v.name),
+     v=>/^en/i.test(v.lang)
+    ];
+    for(const test of pref){const m=vs.find(test);if(m)return m}
+    return vs[0]}
+   if(window.speechSynthesis){
+    bestVoice=pickVoice();
+    speechSynthesis.onvoiceschanged=()=>{bestVoice=pickVoice()};
+   }
+   function speak(t){
+    if(!voice||!window.speechSynthesis)return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(t);
+    if(bestVoice)u.voice=bestVoice;
+    u.rate=1;u.pitch=1.02;
+    u.onstart=()=>vb("Speaking...");
+    u.onend=u.onerror=()=>vb("");
+    speechSynthesis.speak(u)}
 function logCall(tool,args){const c=$("calls");if(c.textContent==="No calls yet.")c.textContent="";c.textContent+=`> ${tool} ${JSON.stringify(args||{})}\n`;c.scrollTop=c.scrollHeight}
 function ping(){fetch("/").then(r=>{$("mcp").textContent=r.ok?"Server: connected":"Server: offline"}).catch(()=>{$("mcp").textContent="Server: offline"})}
 async function callUnderstand(message){
