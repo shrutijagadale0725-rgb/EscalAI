@@ -1,292 +1,368 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Escalation Agent - consumer complaint help</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Escalation Agent – consumer complaint help</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif&family=Mrs+Saint+Delafield&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
 <style>
-#caseList{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-#caseList button{width:100%;text-align:left;border-radius:10px;display:flex;align-items:center;gap:8px;min-height:44px;overflow:hidden}
-#caseList button .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
-#caseList button .badge{flex-shrink:0}
-#caseList button.active{border-color:var(--pri);color:var(--pri)}
-:root{--bg:#faf8f5;--card:#fff;--txt:#1f2933;--mut:#5b6670;--line:#e7e2da;--pri:#0f766e;--onpri:#fff;--priBg:#e6f4f2;--wait:#b45309;--waitBg:#fef3e2;--ok:#15803d;--okBg:#e8f5ec;--bad:#b91c1c;--bot:#f1eee8;
---sans:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--serif:Georgia,"Times New Roman",serif}
-@media(prefers-color-scheme:dark){:root{--bg:#12171a;--card:#1a2125;--txt:#e8edf0;--mut:#a7b3bb;--line:#2d373d;--pri:#2dd4bf;--onpri:#04201d;--priBg:#10302d;--wait:#fbbf24;--waitBg:#2b2210;--ok:#4ade80;--okBg:#10261a;--bad:#f87171;--bot:#222b30}}
-*{box-sizing:border-box}html,body{margin:0}body{font:14px/1.5 var(--sans);background:var(--bg);color:var(--txt)}
+html{scroll-behavior:smooth}:root{--bg:#fbf5ea;--surf:#fffdf8;--ink:#2a2623;--mut:#675e55;--line:#e8dccb;--pri:#c8326f;--priH:#a8265a;--onpri:#fff;--priBg:#fbe7ef;--pink:#e0508a;--blue:#3b69b0;--wait:#955306;--waitBg:#fdf1de;--ok:#16754a;--okBg:#e3f4ea;--bad:#b42318;--badBg:#fdeceb;--bot:#f3ebdd;
+--ui:"DM Mono",ui-monospace,Menlo,Consolas,monospace;--disp:"Instrument Serif",Georgia,"Times New Roman",serif;--script:"Mrs Saint Delafield","Brush Script MT",cursive;--doc:"Source Serif 4",Georgia,serif;--r:8px}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{font:14px/1.65 var(--ui);background:var(--bg);color:var(--ink);padding:env(safe-area-inset-top,0) 0 0}
+button,input,textarea{font:inherit;color:inherit}button{cursor:pointer;min-height:44px}
 :focus-visible{outline:3px solid var(--pri);outline-offset:2px}
-.top{display:flex;align-items:center;gap:12px;max-width:1500px;margin:0 auto;padding:14px 16px}
-.top b{font-size:19px;margin-right:auto}.top span{color:var(--mut);font-size:15px}
-button{font:inherit;cursor:pointer;min-height:44px}
-.pri{background:var(--pri);color:var(--onpri);border:0;border-radius:12px;padding:0 20px;font-weight:700}
-.ghost{background:transparent;color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:0 14px}
-main{max-width:1500px;margin:0 auto;padding:0 16px 40px;display:grid;gap:28px;grid-template-columns:minmax(0,1fr);grid-template-areas:"next""letter""chat""side"}
-@media(min-width:1100px){main{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) 340px;grid-template-areas:"letter next side""letter chat side";grid-template-rows:auto 1fr;align-items:start}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
-#next{grid-area:next;border-left:6px solid var(--pri);background:var(--priBg)}
-#next.wait{border-left-color:var(--wait);background:var(--waitBg)}#next.ok{border-left-color:var(--ok);background:var(--okBg)}#next.mut{border-left-color:var(--line);background:var(--card)}
-#next h1{font-size:19px;line-height:1.25;margin:0 0 6px}#next p{margin:0 0 12px;max-width:60ch}#next p:last-child{margin:0}
-#letterBox{grid-area:letter}#letterBox h2,aside h2{font-size:17px;margin:0 0 10px}
-#letterText{font:14px/1.7 var(--serif);background:#fff;color:#1f2933;border:1px solid var(--line);border-radius:8px;padding:20px;white-space:pre-wrap;max-height:min(520px,60vh);overflow:auto}
-#letterText[contenteditable=true]{outline:2px solid var(--pri)}
-.acts{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 8px}.note{color:var(--mut);font-size:14px;margin:0}
-.chat{grid-area:chat;display:flex;flex-direction:column}
-#log{overflow:auto;min-height:260px;max-height:min(480px,55vh);padding:2px}
-.m{max-width:90%;padding:10px 14px;border-radius:16px;margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
-.me{background:var(--pri);color:var(--onpri);margin-left:auto;border-bottom-right-radius:4px}.bot{background:var(--bot);border-bottom-left-radius:4px}
-.typing{color:var(--mut);animation:pulse 1s infinite alternate}@keyframes pulse{to{opacity:.35}}
-.vbar{color:var(--pri);font-weight:700;font-size:15px;margin-top:6px}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.chips button{border:1px solid var(--line);background:transparent;color:var(--txt);border-radius:999px;padding:0 16px;font-size:15px}
-.chips button.stop{color:var(--bad);border-color:var(--bad)}
-.row{display:flex;gap:8px;margin-top:12px}
-input{flex:1;min-width:0;min-height:48px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font:inherit}
-.ic{width:48px;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--pri);display:grid;place-items:center;padding:0}
-.ic svg{width:22px;height:22px;fill:currentColor}.ic.on{background:var(--bad);color:#fff;border-color:var(--bad);animation:pulse .8s infinite alternate}.ic:disabled{opacity:.4}
-aside{grid-area:side;display:grid;gap:16px;align-content:start}
-.badge{display:inline-block;border-radius:999px;padding:2px 12px;font-size:14px;font-weight:700;background:var(--priBg);color:var(--pri);margin-left:6px}
+h1,h2,h3,p{margin:0}.mut{color:var(--mut)}
+.btn{border:1px solid var(--line);background:var(--surf);border-radius:var(--r);padding:0 16px;font-weight:600}
+.btn:hover{border-color:var(--mut)}.btn.pri{background:var(--pri);border-color:var(--pri);color:var(--onpri)}.btn.pri:hover{background:var(--priH)}
+.btn.danger{color:var(--bad)}.btn.sm{min-height:36px;padding:0 12px;font-size:14px}
+.badge{display:inline-block;border-radius:99px;padding:1px 10px;font-size:13px;font-weight:600;background:var(--priBg);color:var(--pri);white-space:nowrap}
 .badge.wait{background:var(--waitBg);color:var(--wait)}.badge.ok{background:var(--okBg);color:var(--ok)}.badge.mut{background:var(--bot);color:var(--mut)}
-dl{margin:12px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px}dt{color:var(--mut)}dd{margin:0;overflow-wrap:anywhere}
-.bar{height:10px;background:var(--bot);border-radius:99px;overflow:hidden;margin:14px 0 6px}.bar i{display:block;height:100%;background:var(--wait)}
-.steps{list-style:none;margin:0;padding:0}.steps li{position:relative;padding:0 0 18px 38px;color:var(--mut)}
-.steps li::before{content:"";position:absolute;left:11px;top:26px;bottom:0;width:2px;background:var(--line)}.steps li:last-child::before{display:none}
-.steps li i{position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;border:2px solid var(--line);background:var(--card);display:grid;place-items:center;font:700 13px var(--sans);font-style:normal}
-.steps li.done{color:var(--txt)}.steps li.done i{background:var(--ok);border-color:var(--ok);color:#fff}
-.steps li.on{color:var(--txt);font-weight:700}.steps li.on i{border-color:var(--pri);background:var(--priBg);color:var(--pri)}
-.steps li.on.wait i{border-color:var(--wait);background:var(--waitBg);color:var(--wait)}
-.steps small{display:block;font-weight:400;color:var(--mut);font-size:14px}.steps a{color:var(--pri)}
-details{font-size:15px}summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--mut)}
-#calls{font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;color:var(--mut);margin:8px 0;padding:10px;border:1px dashed var(--line);border-radius:10px;max-height:150px;overflow:auto;white-space:pre-wrap}
-@media(prefers-reduced-motion:reduce){*{animation:none!important}}
-@media print{.top,#next,.chat,aside,.acts,.note{display:none!important}main{display:block}#letterText{border:0;max-height:none}}
-</style></head><body>
-<header class="top"><b>Escalation Agent</b><span>Complaint help, step by step</span><button class="ghost" id="newCase">New complaint</button><button class="ghost" id="mute" aria-pressed="true">Voice on</button></header>
-<main>
-<section class="card" id="next" aria-live="polite"></section>
-<section class="card" id="letterBox"><h2>Your letter</h2>
-<p class="note" id="letterEmpty">Your letter will appear here once I have the details of your problem.</p>
-<div id="letterDoc" hidden><div id="letterText"></div>
-<div class="acts"><button class="pri" id="copy">Copy letter</button><button class="ghost" id="wa">WhatsApp</button><button class="ghost" id="mail">Email</button><button class="ghost" id="pdf">Save as PDF</button><button class="ghost" id="edit">Edit</button></div>
-<p class="note">This is a draft for you to send. We never send anything on your behalf. It's not legal advice.</p></div></section>
-<section class="card chat" aria-label="Conversation"><div id="log" aria-live="polite"></div><div id="voice" class="vbar" hidden></div><div class="chips" id="chips"></div>
-<div class="row"><button class="ic" id="mic" aria-label="Speak"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12z"/></svg></button>
-<input id="in" placeholder="Describe what went wrong" autocomplete="off" aria-label="Message"><button class="pri" id="go">Send</button></div></section>
-<aside>
-<section class="card" id="case" hidden></section>
-<section class="card"><h2>Your cases</h2><ul id="caseList"><li class="note">No cases yet.</li></ul></section>
-<section class="card"><h2>Where your case stands</h2><ol class="steps" id="ladder"></ol>
-<p class="note">Reply windows are typical timeframes. Check each official site before relying on a deadline.</p>
-<details id="hist" hidden><summary>Case history</summary><ul id="tl" class="note"></ul></details></section>
-<details class="card" id="demo"><summary>Demo mode</summary><p class="note" id="mcp">Server: checking</p><button class="ghost" data-q="skip ahead 8 days">Skip 8 days</button><pre id="calls">No calls yet.</pre></details>
-</aside></main>
-<script>
-const $=id=>document.getElementById(id),log=$("log"),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let awaitName=true,userName="",caseId=null,lastStatus=null,done=false,voice=true,caseEndState=null,info={},lastR=null,caseStart=0,winStart=0,winTotal=0,prevStatus=null,lastStage=null;
-const STEPS=[["seller","Ask the seller",""],["grievance","Escalate to the company's grievance officer",""],["helpline","National Consumer Helpline","https://consumerhelpline.gov.in"],["commission","Consumer Commission","https://e-jagriti.gov.in"]];
-const LABEL={collecting:["Getting details",""],drafting:["Writing letter",""],draft_ready:["Letter ready",""],waiting:["Waiting for reply","wait"],escalating:["Escalating",""],gate:["Your decision",""],ready_to_file:["Ready to file",""],resolved:["Resolved","ok"],closed:["Stopped","mut"]};
-const CHIPS=[["I sent it","I sent it",["draft_ready"]],["They replied","they replied",["waiting"]],["Show letter","show my letter",["draft_ready","waiting","gate","ready_to_file","closed"]],["File it","file it",["gate"]],["It's resolved","it is resolved",["draft_ready","waiting","gate"]],["Reopen","reopen",["closed"]],["Stop","stop",["draft_ready","waiting","gate"],"stop"]];
-const STARTERS=[["Broken earbuds from Amazon","My earbuds from Amazon arrived broken, order OD-12345, Rs 2499"],["Refund never came","I returned my shoes to Flipkart but the refund never came, order OD-67890, Rs 3499"]];
-const dt=d=>new Date(caseStart+d*864e5).toLocaleDateString("en-IN",{day:"numeric",month:"short"});
-function add(t,c){const d=document.createElement("div");d.className="m "+c;d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
-function vb(t){$("voice").textContent=t;$("voice").hidden=!t}
-let bestVoice=null;
-function pickVoice(){
- const vs=speechSynthesis.getVoices();
- if(!vs.length)return null;
- const pref=[
-  v=>/en-US/i.test(v.lang)&&/Google US English/i.test(v.name),
-  v=>/en-GB/i.test(v.lang)&&/Google UK English Female/i.test(v.name),
-  v=>/en-IN/i.test(v.lang)&&/(Online|Natural)/i.test(v.name),
-  v=>/en-US/i.test(v.lang)&&/(Online|Natural)/i.test(v.name),
-  v=>/^Google/i.test(v.name),
-  v=>/(Online|Natural)/i.test(v.name),
-  v=>/^en/i.test(v.lang)
- ];
- for(const test of pref){const m=vs.find(test);if(m)return m}
- return vs[0]}
-if(window.speechSynthesis){
- bestVoice=pickVoice();
- speechSynthesis.onvoiceschanged=()=>{bestVoice=pickVoice()};
+
+/* layout */
+.app{height:100%;display:grid;grid-template-columns:270px minmax(0,1fr) 380px}
+.side{background:var(--surf);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.brand{padding:18px 18px 12px;font-weight:700;font-size:17px;letter-spacing:-.01em}
+.side .btn.pri{margin:0 14px 14px}
+.side h2{font-size:13px;font-weight:600;color:var(--mut);padding:0 18px 6px}
+#caseList{list-style:none;margin:0;padding:0 8px;overflow:auto;flex:1}
+#caseList button{width:100%;text-align:left;border:0;background:none;border-radius:var(--r);padding:8px 10px;display:flex;flex-direction:column;gap:2px;align-items:flex-start}
+#caseList button:hover{background:var(--bg)}#caseList button.active{background:var(--priBg)}
+#caseList .n{font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side .foot{padding:12px 18px;border-top:1px solid var(--line);font-size:13px;color:var(--mut)}
+.stage{overflow:auto;min-width:0;padding:28px clamp(16px,3vw,40px) 48px}
+.stage>*{max-width:760px;margin-inline:auto}
+.chatp{background:var(--surf);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.mtop{display:none}.tabs{display:none}
+
+/* start */
+.start h1{font-size:clamp(26px,4vw,34px);line-height:1.15;letter-spacing:-.02em;margin:24px 0 10px;max-width:18ch}
+.start .lede{max-width:52ch;color:var(--mut);margin-bottom:24px}
+.form{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:14px}
+label{font-weight:600;font-size:14px;display:grid;gap:6px}label small{font-weight:400;color:var(--mut)}
+textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);padding:10px 12px;min-height:44px}
+textarea{min-height:112px;resize:vertical}
+.ex{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:18px;font-size:14px}
+.ex button{min-height:36px;border:1px solid var(--line);background:var(--surf);border-radius:99px;padding:0 14px;font-size:14px}
+.how{list-style:none;padding:0;margin:32px 0 0;display:grid;gap:12px;color:var(--mut);font-size:14px}
+.how b{color:var(--ink)}
+
+/* case */
+.chead{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.chead h1{font-size:22px;letter-spacing:-.01em;line-height:1.25}
+.meta{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:14px;color:var(--mut);margin-top:4px}
+.track{list-style:none;margin:22px 0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.track li{position:relative;padding-top:22px;font-size:13px;color:var(--mut);padding-right:8px;line-height:1.35}
+.track li::before{content:"";position:absolute;left:0;right:0;top:6px;height:3px;background:var(--line)}
+.track li::after{content:"";position:absolute;left:0;top:0;width:15px;height:15px;border-radius:50%;background:var(--surf);border:3px solid var(--line)}
+.track li.done::before,.track li.done::after{background:var(--ok);border-color:var(--ok)}
+.track li.on{color:var(--ink);font-weight:600}.track li.on::after{border-color:var(--pri)}.track li.on.wait::after{border-color:var(--wait)}
+.track li.done{color:var(--ink)}.track a{color:var(--pri);display:block;font-weight:400}
+.next{border:1px solid var(--line);border-left:5px solid var(--pri);background:var(--surf);border-radius:var(--r);padding:16px 18px}
+.next.wait{border-left-color:var(--wait)}.next.ok{border-left-color:var(--ok)}.next.mut{border-left-color:var(--line)}
+.next h2{font-size:18px;line-height:1.3;margin-bottom:4px}.next p{color:var(--mut);max-width:58ch;margin-bottom:12px}.next>*:last-child{margin-bottom:0}
+.next .row{display:flex;gap:8px;flex-wrap:wrap}
+.bar{height:8px;background:var(--bot);border-radius:99px;overflow:hidden;margin:4px 0 6px}.bar i{display:block;height:100%;background:var(--wait)}
+.sec{margin-top:28px}.sec>h2{font-size:16px;margin-bottom:10px}
+.sheet{background:#fff;color:#1c2330;border:1px solid var(--line);border-radius:4px;padding:clamp(18px,4vw,36px);font:16px/1.7 var(--doc);white-space:pre-wrap;box-shadow:0 1px 2px rgba(20,30,60,.08)}
+.sheet[contenteditable=true]{outline:2px solid var(--pri)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 6px}
+.note{font-size:13px;color:var(--mut)}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;color:var(--mut)}
+details.hist{margin-top:20px}details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--mut);font-weight:600}
+details ul{margin:0;padding-left:18px;color:var(--mut);font-size:14px}
+
+/* chat */
+.chathd{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chathd h2{font-size:16px}
+#log{flex:1;overflow:auto;padding:14px 16px}
+.m{max-width:88%;padding:9px 13px;border-radius:14px;margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.me{background:var(--pri);color:var(--onpri);margin-left:auto;border-bottom-right-radius:4px}.bot{background:var(--bot);border-bottom-left-radius:4px}
+.typing{color:var(--mut);animation:p 1s infinite alternate}@keyframes p{to{opacity:.35}}
+.cfoot{border-top:1px solid var(--line);padding:10px 14px 14px}
+.err{display:none;align-items:center;gap:10px;justify-content:space-between;background:var(--badBg);color:var(--bad);border-radius:var(--r);padding:8px 12px;margin-bottom:10px;font-size:14px}.err.show{display:flex}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chips button{min-height:36px;border:1px solid var(--line);background:var(--surf);border-radius:99px;padding:0 13px;font-size:14px}
+.chips .stop{color:var(--bad);border-color:var(--bad)}
+.in{display:flex;gap:8px}.in input{flex:1;min-width:0}
+.ic{width:44px;padding:0;display:grid;place-items:center;color:var(--pri)}.ic svg{width:20px;height:20px;fill:currentColor}
+.ic.on{background:var(--bad);border-color:var(--bad);color:#fff}.ic:disabled{opacity:.4}
+#vb{font-size:13px;color:var(--pri);font-weight:600;min-height:0;margin-bottom:6px}
+#demo{display:none;margin-top:10px}body.demo #demo{display:block}
+
+/* tablet + mobile */
+@media(max-width:1180px){.app{grid-template-columns:240px minmax(0,1fr)}.chatp{display:none}body[data-view=chat] .chatp{display:flex;grid-column:2}body[data-view=chat] .stage{display:none}.tabs{display:flex}.stage{padding-bottom:88px}}
+@media(max-width:800px){
+ .app{display:block}
+ .side{position:fixed;inset:0 20% 0 0;z-index:20;transform:translateX(-102%);transition:transform .2s;box-shadow:4px 0 24px rgba(0,0,0,.2)}
+ body.drawer .side{transform:none}
+ .mtop{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surf);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+ .mtop b{margin-right:auto}
+ .stage,.chatp{height:calc(100% - 53px)}
+ .stage{display:block}body[data-view=chat] .stage,body[data-view=letter] #secNext{display:none}body[data-view=chat] .chatp{display:flex}
+ body[data-view=case] #secLetter{display:none}
+ .track{grid-template-columns:1fr 1fr 1fr 1fr;font-size:12px}
+ .tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surf);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
+ .tabs button{flex:1;border:0;background:none;font-weight:600;color:var(--mut);min-height:52px}.tabs button[aria-current=true]{color:var(--pri);box-shadow:inset 0 3px var(--pri)}
 }
-   function pickVoice(){
-    const vs=speechSynthesis.getVoices();
-    if(!vs.length)return null;
-    const pref=[
-     v=>/en-US/i.test(v.lang)&&/Google US English/i.test(v.name),
-     v=>/en-GB/i.test(v.lang)&&/Google UK English Female/i.test(v.name),
-     v=>/en-IN/i.test(v.lang)&&/(Online|Natural)/i.test(v.name),
-     v=>/en-US/i.test(v.lang)&&/(Online|Natural)/i.test(v.name),
-     v=>/^Google/i.test(v.name),
-     v=>/(Online|Natural)/i.test(v.name),
-     v=>/^en/i.test(v.lang)
-    ];
-    for(const test of pref){const m=vs.find(test);if(m)return m}
-    return vs[0]}
-   if(window.speechSynthesis){
-    bestVoice=pickVoice();
-    speechSynthesis.onvoiceschanged=()=>{bestVoice=pickVoice()};
-   }
-   function speak(t){
-    if(!voice||!window.speechSynthesis)return;
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(t);
-    if(bestVoice)u.voice=bestVoice;
-    u.rate=1;u.pitch=1.02;
-    u.onstart=()=>vb("Speaking...");
-    u.onend=u.onerror=()=>vb("");
-    speechSynthesis.speak(u)}
-function logCall(tool,args){const c=$("calls");if(c.textContent==="No calls yet.")c.textContent="";c.textContent+=`> ${tool} ${JSON.stringify(args||{})}\n`;c.scrollTop=c.scrollHeight}
-function ping(){fetch("/").then(r=>{$("mcp").textContent=r.ok?"Server: connected":"Server: offline"}).catch(()=>{$("mcp").textContent="Server: offline"})}
+@media(min-width:801px) and (max-width:1180px){.tabs{left:240px}}
+ dialog{border:1px solid var(--line);border-radius:12px;padding:0;max-width:480px;width:calc(100% - 32px);background:var(--surf);color:var(--ink)}
+dialog::backdrop{background:rgba(10,14,25,.5)}dialog form{padding:22px}dialog h2{font-size:18px;margin-bottom:10px}dialog p,dialog dl{margin:0 0 10px}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}dl.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}dl.kv dt{color:var(--mut)}dl.kv dd{margin:0;overflow-wrap:anywhere}
+dialog ul{margin:0 0 10px;padding-left:18px}dialog li{margin-bottom:4px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:var(--r);opacity:0;pointer-events:none;transition:.2s;z-index:50;max-width:90vw}#toast.show{opacity:1;transform:translate(-50%,0)}
+.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px;padding-top:20px;border-top:1px solid var(--line);font-size:14px;color:var(--mut)}.trust b{display:block;color:var(--ink);margin-bottom:2px}
+.more{border-top:1px solid var(--line);padding-top:4px}.more summary{min-height:40px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+select{width:100%;min-height:44px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);padding:0 10px}
+.busy{padding-top:32px}.busy h1{font-size:22px;margin-bottom:6px}.sk{height:14px;border-radius:6px;background:var(--line);margin:12px 0;animation:p 1s infinite alternate}.sk:nth-child(3){width:80%}.sk:nth-child(4){width:60%}
+.lmeta{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:14px;margin-bottom:10px}.lmeta dt{color:var(--mut)}.lmeta dd{margin:0;font-weight:600}
+@media(max-width:800px){.trust{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
+body.nocase .app{grid-template-columns:270px minmax(0,1fr)}body.nocase .chatp,body.nocase .tabs{display:none!important}.more summary{gap:6px}
+.brand,.chead h1,.next h2,.busy h1,dialog h2,.start h1,.chathd h2,.sec>h2{font-family:var(--disp);font-weight:400}
+.start h1{font-size:clamp(34px,5vw,48px);line-height:1.05;max-width:16ch}.chead h1{font-size:30px}.next h2{font-size:24px}.sec>h2{font-size:24px}.brand{font-size:22px;border:0;background:none;text-align:left;cursor:pointer;min-height:44px}
+.btn{font-family:inherit}.btn.pri{border-radius:99px}.script{font-family:var(--script);font-size:34px;line-height:1;color:var(--pink);display:block;margin-bottom:6px}
+#landing{display:none}body.landing #landing{display:block}body.landing .app,body.landing .mtop,body.landing .tabs{display:none!important}
+.lw{max-width:1000px;margin:0 auto;padding:0 20px}.ld h1,.ld h2{font-family:var(--disp);font-weight:400;letter-spacing:-.01em;margin:0}
+.lnav{display:flex;align-items:center;gap:16px;padding:16px 0}.lnav .b{margin-right:auto;font:400 20px var(--disp);background:none;border:0;display:flex;align-items:center;gap:8px;padding:0;color:inherit}
+.dot{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f6a6c8,#7a4fd0)}.lnav a,.lnav button.l{color:var(--ink);font-size:13px;background:none;border:0;text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+.hero{background:linear-gradient(180deg,#9b99e6 0%,#c4a2de 34%,#f4b6c8 58%,var(--bg) 100%);text-align:center;padding-bottom:84px;position:relative;overflow:hidden}.hero .lnav a,.hero .lnav button{color:#1e1a2e}
+.hero .script{color:#fff;font-size:42px;margin-top:40px}.hero h1{font-size:clamp(44px,8vw,76px);line-height:1;color:#1b1630}.hero p{max-width:50ch;margin:20px auto 28px;color:#2a2440}
+.sp{position:absolute;color:#fff;opacity:.8;font-size:22px}.hero .small{display:block;margin-top:14px;font-size:12px;color:#3b3355}
+.ls{padding:72px 0;text-align:center}.ls h2{font-size:clamp(30px,5vw,44px);line-height:1.1;margin-bottom:14px}.ls p.lead{max-width:56ch;margin:0 auto 32px;color:var(--mut)}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;text-align:left}.lc{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:18px}.lc b{display:block;margin-bottom:6px}.lc p{margin:0;color:var(--mut);font-size:13px}
+.sky{height:200px;background:radial-gradient(ellipse 30% 40% at 20% 85%,#fff,transparent),radial-gradient(ellipse 36% 45% at 60% 90%,#fff,transparent),radial-gradient(ellipse 25% 35% at 90% 80%,#fff,transparent),linear-gradient(180deg,var(--bg),#a9cdea 45%,#e7f0f8 80%,var(--bg))}
+.lad{list-style:none;margin:0 auto;padding:0;max-width:520px;text-align:left}.lad li{padding:12px 16px;background:var(--surf);border:1px solid var(--line);border-radius:12px;margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.lad a{color:var(--pri)}
+.dark{background:#1b1917;color:#f3ede3;padding:72px 0;text-align:center}.dark p{max-width:56ch;margin:0 auto 26px;color:#c9c0b3}.dark .btn:not(.pri){background:transparent;color:#f3ede3;border-color:#5a534a;border-radius:99px}
+footer.lf{padding:48px 0;font-size:13px;color:var(--mut)}footer.lf .lw{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:24px}footer.lf b{display:block;color:var(--ink);margin-bottom:6px}footer.lf a,footer.lf button{display:block;color:var(--mut);background:none;border:0;padding:4px 0;text-align:left;min-height:0;font:inherit;text-decoration:none;cursor:pointer}
+@media(max-width:700px){.cards3{grid-template-columns:1fr}footer.lf .lw{grid-template-columns:1fr 1fr}.lnav .hide{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{body *{visibility:hidden}.sheet,.sheet *{visibility:visible}.sheet{position:absolute;left:0;top:0;border:0;box-shadow:none;width:100%}}
+</style></head><body data-view="case" class="nocase landing">
+<div id="landing" class="ld">
+<section class="hero"><div class="lw"><nav class="lnav" aria-label="Main"><button class="b" data-go="home"><span class="dot" aria-hidden="true"></span>Escalation Agent</button><button class="l" data-go="app">My complaints</button></nav>
+<span class="sp" style="left:12%;top:120px" aria-hidden="true">✦</span><span class="sp" style="right:14%;top:90px" aria-hidden="true">✦</span><span class="sp" style="right:22%;top:300px" aria-hidden="true">✦</span>
+<span class="script">Consumer complaints, handled</span><h1>Get your refund,<br>one step at a time</h1>
+<p>Tell us what went wrong. We write the complaint letter, track how long the company has to reply, and show you when to escalate.</p>
+<button class="btn pri" data-go="new" style="min-height:48px;padding:0 28px">Start a complaint</button><span class="small">You review and send every letter yourself.</span></div></section>
+<section class="ls"><div class="lw"><span class="script">How it works</span><h2>It's not a chatbot.<br>It's your case file.</h2><p class="lead">Every complaint becomes a case with a letter, a deadline and a clear next step. It's saved, so you can come back to it.</p>
+<div class="cards3"><div class="lc"><b>1. Tell us</b><p>Describe the problem and add the order details if you have them.</p></div><div class="lc"><b>2. Review and send</b><p>Edit the letter, then send it by email or WhatsApp yourself.</p></div><div class="lc"><b>3. Track and escalate</b><p>We count the reply window and tell you when to move up a step.</p></div></div></div></section>
+<div class="sky" aria-hidden="true"></div>
+<section class="ls"><div class="lw"><span class="script">You're in control</span><h2>We write. You send.</h2><p class="lead">Nothing goes out unless you send it. We never contact the company or file a case for you.</p>
+<ol class="lad"><li><span>1. Ask the seller</span></li><li><span>2. Company's grievance officer</span></li><li><span>3. National Consumer Helpline</span><a href="https://consumerhelpline.gov.in" target="_blank" rel="noopener">Official site</a></li><li><span>4. Consumer Commission</span><a href="https://e-jagriti.gov.in" target="_blank" rel="noopener">Official site</a></li></ol>
+<p class="note" style="margin-top:12px">Reply windows are typical timeframes. Check each official site before relying on a deadline.</p></div></section>
+<section class="dark"><div class="lw"><span class="script" style="color:#f4b6c8">Before you start</span><h2 style="font-size:clamp(30px,5vw,44px);margin-bottom:14px">Keep it simple, keep it safe</h2>
+<p>We save your name, item, seller, order ID, amount, letters and case history so you can return to your case. Never enter card numbers, passwords or OTPs. This is not legal advice.</p>
+<button class="btn pri" data-go="new" style="min-height:48px;padding:0 28px">Start a complaint</button> <button class="btn" id="trustBtn2">How your data is handled</button></div></section>
+<footer class="lf"><div class="lw"><div><b style="font:400 20px var(--disp)">Escalation Agent</b>Drafts for you to send. Not legal advice.</div>
+<div><b>Product</b><button data-go="new">Start a complaint</button><button data-go="app">My complaints</button></div>
+<div><b>Official sites</b><a href="https://consumerhelpline.gov.in" target="_blank" rel="noopener">Consumer Helpline</a><a href="https://e-jagriti.gov.in" target="_blank" rel="noopener">e-Jagriti</a></div>
+<div><b>Trust</b><button id="trustBtn3">How this works</button></div></div></footer></div>
+<header class="mtop"><button class="btn sm" id="menu" aria-label="Open cases">Cases</button><b data-go="home">Escalation Agent</b><button class="btn sm" id="newM">New</button></header>
+<div class="app">
+<aside class="side" aria-label="Your complaints">
+ <button class="brand" data-go="home">Escalation Agent</button>
+ <button class="btn pri" id="newCase">New complaint</button>
+ <h2>Your complaints</h2><ul id="caseList"></ul>
+ <div class="foot"><button class="btn sm" id="trustBtn">How this works and your data</button><p style="margin-top:8px">Drafts only. We never send anything for you. Not legal advice.</p><div id="demo"><p id="mcp">Server: checking</p><button class="btn sm" data-q="skip ahead 8 days">Skip 8 days</button></div></div>
+</aside>
+
+<main class="stage" id="stage">
+ <div id="start" class="start">
+  <h1>Get your refund or replacement</h1>
+  <p class="lede">Describe what went wrong. We write the complaint letter, track how long the company has to reply, and tell you when to escalate.</p>
+  <div class="form">
+   <label>What happened?<textarea id="prob" placeholder="e.g. My earbuds from Amazon arrived broken."></textarea></label>
+   <details class="more"><summary>Add order details <span class="mut">(recommended)</span></summary>
+    <div class="g2"><label>Seller or platform<input type="text" id="pf" placeholder="Amazon"></label><label>Order ID<input type="text" id="oid" placeholder="OD-12345"></label>
+    <label>Amount paid (Rs)<input type="text" id="amt" inputmode="numeric" placeholder="2499"></label>
+    <label>What you want<select id="want"><option value="">Not sure</option><option>refund</option><option>replacement</option><option>repair</option></select></label></div></details>
+   <button class="btn pri" id="begin">Review and write my letter</button>
+  </div>
+  <div class="ex"><span class="mut">Try an example:</span><button data-ex="0">Broken earbuds</button><button data-ex="1">Refund never came</button></div>
+  <div class="trust"><p><b>We write drafts</b>Letters for you to review, edit and send yourself.</p><p><b>You stay in control</b>We never contact the company or file anything for you.</p><p><b>Not legal advice</b>We point you to official consumer channels.</p></div>
+ </div>
+
+ <div id="busy" class="busy" hidden role="status"><h1>Writing your letter</h1><p class="mut">Reading your details and preparing the first step.</p><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
+ <div id="case" hidden>
+  <section id="secNext">
+   <div class="chead"><div><h1 id="cTitle"></h1><div class="meta" id="cMeta"></div></div><span class="badge" id="cBadge"></span></div>
+   <ol class="track" id="track" aria-label="Escalation steps"></ol>
+   <div class="next" id="next" aria-live="polite"></div>
+   <details class="hist" id="hist" hidden><summary>Case history</summary><ul id="tl"></ul></details>
+  </section>
+  <section class="sec" id="secLetter"><h2>Your letter</h2>
+   <div class="empty" id="lEmpty">Your letter will appear here once the details are complete.</div>
+   <div id="lDoc" hidden><dl class="lmeta" id="lMeta"></dl><div class="sheet" id="sheet"></div>
+    <div class="acts"><button class="btn pri" id="copy">Copy letter</button><button class="btn" id="wa">WhatsApp</button><button class="btn" id="mail">Email</button><button class="btn" id="pdf">Save as PDF</button><button class="btn" id="dl">Download</button><button class="btn" id="edit">Edit</button></div>
+    <p class="note">Review it, then send it yourself. Nothing is sent on your behalf.</p></div>
+  </section>
+ </div>
+</main>
+
+<section class="chatp" aria-label="Conversation">
+ <div class="chathd"><h2>Ask or update</h2><button class="btn sm" id="mute" aria-pressed="false">Read aloud: off</button></div>
+ <div id="log" aria-live="polite"></div>
+ <div class="cfoot"><div class="err" id="err" role="alert"><span>Can't reach the server.</span><button class="btn sm" id="retry">Try again</button></div>
+  <div id="vb"></div><div class="chips" id="chips"></div>
+  <div class="in"><button class="btn ic" id="mic" aria-label="Speak"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12z"/></svg></button>
+  <input type="text" id="in" placeholder="Type a message" autocomplete="off" aria-label="Message"><button class="btn pri" id="go">Send</button></div></div>
+</section>
+</div>
+<dialog id="dlg" aria-labelledby="dT"><form method="dialog"><h2 id="dT"></h2><div id="dB"></div><div class="row"><button class="btn" id="dNo" value="no">Cancel</button><button class="btn pri" id="dOk" value="ok"></button></div></form></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<nav class="tabs" aria-label="Sections"><button data-view="case">Status</button><button data-view="letter">Letter</button><button data-view="chat">Chat</button></nav>
+
+<script>
+const $=id=>document.getElementById(id),log=$("log"),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let replied=false,lastR=null,awaitName=true,userName="",caseId=null,lastStatus=null,done=false,voice=false,endState=null,info={},caseStart=0,winStart=0,winTotal=0,prevStatus=null,lastStage=null,lastText="",lastForce=false;
+const STEPS=[["seller","Seller",""],["grievance","Grievance officer",""],["helpline","National Consumer Helpline","https://consumerhelpline.gov.in"],["commission","Consumer Commission","https://e-jagriti.gov.in"]];
+const LABEL={collecting:["Getting details",""],drafting:["Writing letter",""],draft_ready:["Letter ready",""],waiting:["Waiting for reply","wait"],escalating:["Escalating",""],gate:["Your decision",""],ready_to_file:["Ready to file",""],resolved:["Resolved","ok"],closed:["Stopped","mut"]};
+const CHIPS=[["I sent it","I sent it",["draft_ready"]],["They replied","they replied",["waiting"]],["File it","file it",["gate"]],["It's resolved","it is resolved",["draft_ready","waiting","gate"]],["Reopen","reopen",["closed"]],["Stop case","stop",["draft_ready","waiting","gate"],"stop"]];
+const EX=["My earbuds from Amazon arrived broken, order OD-12345, Rs 2499","I returned my shoes to Flipkart but the refund never came, order OD-67890, Rs 3499"];
+const dt=d=>new Date(caseStart+d*864e5).toLocaleDateString("en-IN",{day:"numeric",month:"short"});
+const post=(u,b)=>fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b||{})});
+function view(v){document.body.dataset.view=v;document.body.classList.remove("drawer");document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-current",b.dataset.view===v))}
+document.querySelector(".tabs").onclick=e=>{const b=e.target.closest("button");if(b)view(b.dataset.view)};
+$("menu").onclick=()=>document.body.classList.toggle("drawer");
+function add(t,c){const d=document.createElement("div");d.className="m "+c;d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+function vb(t){$("vb").textContent=t}
+/* voice out (off by default) */
+let bestVoice=null;
+function pickVoice(){const vs=speechSynthesis.getVoices();if(!vs.length)return null;
+ const t=[v=>/en-IN/i.test(v.lang),v=>/Google US English/i.test(v.name),v=>/(Online|Natural)/i.test(v.name),v=>/^en/i.test(v.lang)];
+ for(const f of t){const m=vs.find(f);if(m)return m}return vs[0]}
+if(window.speechSynthesis){bestVoice=pickVoice();speechSynthesis.onvoiceschanged=()=>{bestVoice=pickVoice()}}
+function speak(t){if(!voice||!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);if(bestVoice)u.voice=bestVoice;u.onstart=()=>vb("Speaking…");u.onend=u.onerror=()=>vb("");speechSynthesis.speak(u)}
+$("mute").onclick=e=>{voice=!voice;e.target.textContent="Read aloud: "+(voice?"on":"off");e.target.setAttribute("aria-pressed",voice);if(!voice&&window.speechSynthesis){speechSynthesis.cancel();vb("")}};
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),2400)}
+function ask(title,html,ok,cb,cancel=true){$("dT").textContent=title;$("dB").innerHTML=html;$("dOk").textContent=ok;$("dNo").hidden=!cancel;const d=$("dlg");d.onclose=()=>{if(d.returnValue==="ok"&&cb)cb()};d.returnValue="";d.showModal()}
+$("trustBtn").onclick=()=>ask("How this works","<p>This tool helps you write and track a consumer complaint.</p><p><b>What it does</b></p><ul><li>Writes complaint letters as drafts</li><li>Tracks how long the company has to reply</li><li>Shows the next official step and links to it</li></ul><p><b>What it does not do</b></p><ul><li>Send messages or contact the company</li><li>File cases for you</li><li>Give legal advice</li></ul><p><b>What is saved</b></p><p>Your name, item, seller, order ID, amount, letters and case history, so you can come back to the case. Never enter card numbers, passwords or OTPs.</p>","Got it",null,false);
+/* api */
 async function callUnderstand(message){
  const body={message,case_id:caseId,status:lastStatus,awaiting_name:awaitName,name:userName||undefined};
- const t=add("...","bot typing");
- try{const r=await fetch("/api/understand",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-  if(!r.ok){$("mcp").textContent="Server: offline";throw new Error("request failed")}
-  return await r.json()}finally{t.remove()}}
-function classifyEndState(status){status=status||"";
- if(/ready_to_file/.test(status))return"filed";if(/closed/.test(status))return"stopped";if(/resolved/.test(status))return"resolved";return null}
-const STALE_REPLIES={
- filed:{sent:"There's nothing left to send — this case already went all the way to filing.",resolved:"This one already went all the way to filing — resolving it now wouldn't undo that.",stop:"This case is already closed — it was filed, not stopped.",file:"This case is already filed and ready to go."},
- stopped:{sent:"You stopped this case earlier, so there's nothing to send.",resolved:"This case was stopped, not resolved — there's nothing more to mark here.",stop:"This one's already stopped.",file:"This case was stopped before filing, so there's nothing to file."},
- resolved:{sent:"This case is already marked resolved — no need to send anything.",resolved:"Good to know, but this one's already marked resolved.",stop:"This case resolved on its own — no need to stop it.",file:"This case was resolved, so it never needs filing."}};
-function detectAction(text){const t=text.toLowerCase();
- if(/\bfile\b/.test(t))return"file";if(/\bstop\b/.test(t))return"stop";
- if(/\b(resolved|fixed|refund(ed)?)\b/.test(t))return"resolved";
- if(/\b(sent|mailed|emailed|submitted|replied|responded)\b/.test(t))return"sent";return null}
-function staleCaseReply(text,endState){const a=detectAction(text);
- if(endState&&a&&STALE_REPLIES[endState]&&STALE_REPLIES[endState][a])return STALE_REPLIES[endState][a];
- return"This case is finished. Describe a new problem in a full sentence to start another."}
-function nextCard(r){
- const s=r&&r.status,left=r?r.days_left:0,st=r&&r.stage?r.stage:"the seller";
- const M={collecting:["","Tell me what happened","Share what you bought, where, and what went wrong. I'll ask for anything missing."],
- drafting:["","Writing your letter","One moment."],escalating:["","Writing your next letter","One moment."],
- draft_ready:["","Next step: send this letter","Send it to "+st+" by email or WhatsApp. Then tap “I've sent it” and I'll start tracking the reply window.","I've sent it","I sent it"],
- waiting:["wait","Nothing to do for "+left+(left===1?" day":" days"),"I'm tracking the reply window and your case is saved. If they reply, let me know.","They replied","they replied"],
- gate:["","Time to decide: file a formal case?","The problem isn't fixed yet. I can prepare your case file with the full history attached.","Prepare my case file","file it"],
+ const t=add("…","bot typing");
+ try{const r=await post("/api/understand",body);if(!r.ok)throw 0;$("err").classList.remove("show");return await r.json()}finally{t.remove()}}
+function classify(s){s=s||"";return/ready_to_file/.test(s)?"filed":/closed/.test(s)?"stopped":/resolved/.test(s)?"resolved":null}
+const STALE={filed:{sent:"This case already went all the way to filing, so there's nothing left to send.",resolved:"This case was already filed. Marking it resolved wouldn't undo that.",stop:"This case is closed. It was filed, not stopped.",file:"This case is already filed."},
+ stopped:{sent:"You stopped this case, so there's nothing to send.",resolved:"This case was stopped, not resolved.",stop:"This case is already stopped.",file:"This case was stopped before filing."},
+ resolved:{sent:"This case is already resolved.",resolved:"Good to know. It's already marked resolved.",stop:"This case resolved on its own, so there's nothing to stop.",file:"This case was resolved, so it doesn't need filing."}};
+function action(t){t=t.toLowerCase();if(/\bfile\b/.test(t))return"file";if(/\bstop\b/.test(t))return"stop";if(/\b(resolved|fixed|refund(ed)?)\b/.test(t))return"resolved";if(/\b(sent|mailed|emailed|submitted|replied|responded)\b/.test(t))return"sent";return null}
+function staleReply(t){const a=action(t);return(endState&&a&&STALE[endState]?.[a])||"This case is finished. Start a new complaint from the sidebar."}
+/* render */
+function renderNext(r){
+ const s=r.status,left=r.days_left,st=r.stage||"the seller",btn=(l,q,c)=>`<button class="btn ${c||"pri"}" data-q="${esc(q)}">${esc(l)}</button>`;
+ const M={collecting:["","Tell us a bit more","Use the chat to share what you bought, where, and what went wrong."],
+ drafting:["","Writing your letter","This takes a moment."],escalating:["","Writing your next letter","This takes a moment."],
+ draft_ready:["","Send this letter to "+st,"Email it or send it on WhatsApp, then come back and tap the button so we can start the reply window.",btn("I've sent it","I sent it")],
+ waiting:replied?["","Did they fix it?","Tell us what happened so your case stays on the right step.",btn("Yes, it's resolved","it is resolved")+btn("Not yet","notyet","")]:["wait","Nothing to do for "+left+(left===1?" day":" days"),"We're tracking the reply window and your case is saved. If they respond, tell us.",btn("They replied","they replied","")],
+ gate:["","Decide: file a formal case?","The problem isn't fixed yet. We can prepare your case file with the full history attached.",btn("Prepare my case file","file it")],
  ready_to_file:["","Your case file is ready","Read it through, then file it yourself on the official site."],
- resolved:["ok","Resolved. Glad it's sorted.","Nothing more to do. Your history is saved."],
- closed:["mut","Case stopped","I won't send reminders. You can reopen it whenever you like.","Reopen","reopen"]};
- const m=M[s]||["","You're not alone in this","Tell me what went wrong and I'll write each letter, track the reply window, and move your case up the ladder until it's fixed."];
- const n=$("next");n.className="card "+m[0];
- n.innerHTML=`<h1>${esc(m[1])}</h1><p>${esc(m[2])}</p>`+(m[3]?`<button class="pri" data-q="${esc(m[4])}">${esc(m[3])}</button>`:"")}
-function caseCard(r){
- const c=$("case");if(!r||!r.status){c.hidden=true;return}c.hidden=false;
- const L=LABEL[r.status]||["Open",""],rows=[["Item",info.product],["Platform",info.platform],["Order ID",info.order_id],["Amount",info.amount]].filter(x=>x[1]);
- let h=`<h2>Your case <span class="badge ${L[1]}">${L[0]}</span></h2>`;
- if(rows.length)h+="<dl>"+rows.map(x=>`<dt>${x[0]}</dt><dd>${esc(x[1])}</dd>`).join("")+"</dl>";
- if(r.status==="waiting"&&winTotal){const e=Math.max(0,Math.min(winTotal,r.day-winStart));
-  h+=`<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${winTotal}" aria-valuenow="${e}"><i style="width:${e/winTotal*100}%"></i></div><p class="note">Day ${e} of ${winTotal} · ${r.days_left} ${r.days_left===1?"day":"days"} left · reply due by ${dt(r.day+r.days_left)}</p>`}
- c.innerHTML=h}
-function ladder(r){
- const L=$("ladder");if(!r||!r.stage){L.innerHTML=STEPS.map((s,n)=>`<li><i>${n+1}</i>${s[1]}</li>`).join("");return}
- const i=STEPS.findIndex(k=>r.stage.toLowerCase().includes(k[0])),w=r.status==="waiting";
- L.innerHTML=STEPS.map((s,n)=>{const d=n<i||r.status==="resolved",o=n===i&&!d;
-  let sub=o&&w?`<small>Sent ${dt(winStart)} · reply due ${dt(r.day+r.days_left)}</small>`:"";
-  if(s[2]&&(o||d))sub+=`<small><a href="${s[2]}" target="_blank" rel="noopener">Official site</a></small>`;
-  return `<li class="${d?"done":o?"on"+(w?" wait":""):""}"><i>${d?"✓":n+1}</i>${s[1]}${sub}</li>`}).join("");
+ resolved:["ok","Resolved","Nothing more to do. Your history stays saved."],
+ closed:["mut","Case stopped","No reminders will be sent. You can reopen it any time.",btn("Reopen case","reopen")]};
+ const m=M[s]||["","In progress","Use the chat to update this case."];
+ let h=`<h2>${esc(m[1])}</h2><p>${esc(m[2])}</p>`;
+ if(s==="waiting"&&winTotal){const e=Math.max(0,Math.min(winTotal,r.day-winStart));h+=`<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${winTotal}" aria-valuenow="${e}"><i style="width:${e/winTotal*100}%"></i></div><p class="note" style="margin-bottom:12px">Day ${e} of ${winTotal}. Reply due by ${dt(r.day+r.days_left)}.</p>`}
+ const si=STEPS.findIndex(k=>(r.stage||"").toLowerCase().includes(k[0])),nx=["the company's grievance officer","the National Consumer Helpline","a Consumer Commission case"];
+ if(si>=0&&si<3&&/draft_ready|waiting|escalating|gate/.test(s))h+=`<p class="note" style="margin-bottom:12px">If this doesn't fix it, the next step is ${nx[si]}.</p>`;
+ if(m[3])h+=`<div class="row">${m[3]}</div>`;
+ $("next").className="next "+m[0];$("next").innerHTML=h}
+function renderTrack(r){
+ const i=STEPS.findIndex(k=>(r.stage||"").toLowerCase().includes(k[0])),w=r.status==="waiting";
+ $("track").innerHTML=STEPS.map((s,n)=>{const d=n<i||r.status==="resolved",o=n===i&&!d;
+  let sub=o&&w?`<span class="mut">Due ${dt(r.day+r.days_left)}</span>`:"";if(s[2]&&(o||d))sub+=`<a href="${s[2]}" target="_blank" rel="noopener">Official site</a>`;
+  return`<li class="${d?"done":o?"on"+(w?" wait":""):""}">${s[1]}${sub}</li>`}).join("");
  const t=r.timeline||[];$("hist").hidden=!t.length;$("tl").innerHTML=t.map(x=>`<li>${esc(x)}</li>`).join("")}
-function chips(){
- const b=[];
- if(!caseId&&awaitName)b.push(["Skip","skip"]);else if(!caseId)STARTERS.forEach(s=>b.push(s));
- CHIPS.forEach(k=>{if(caseId&&lastStatus&&k[2].includes(lastStatus))b.push([k[0],k[1],k[3]])});
- $("chips").innerHTML=b.map(k=>`<button data-q="${esc(k[1])}"${k[2]?` class="${k[2]}"`:""}>${esc(k[0])}</button>`).join("")}
-function render(r){lastR=r;nextCard(r);caseCard(r);ladder(r);chips()}
-async function loadCaseList(){
- try{
-  const r=await fetch("/api/tool/list_cases",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
-  const d=await r.json();
-  const items=d.cases||[];
-  const L=$("caseList");
-  if(!items.length){L.innerHTML='<li class="note">No cases yet.</li>';return}
-  L.innerHTML=items.map(c=>{
-   const lbl=LABEL[c.status]||[c.status,""];
-  return `<li><button class="ghost${c.case_id===caseId?" active":""}" data-case='${esc(JSON.stringify(c))}'>`+
-       `<span class="name">${esc(c.product||"Case")} · ${esc(c.platform||"")}</span>`+
-       `<span class="badge ${esc(lbl[1])}">${esc(lbl[0])}</span></button></li>`;
-  }).join("")
- }catch(e){}}
-async function switchCase(meta){
- const r=await fetch("/api/tool/get_next_step",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({case_id:meta.case_id})});
- if(!r.ok)return;
- const v=await r.json();
- prevStatus=null;lastStage=null;caseEndState=null;
- info={product:meta.product,platform:meta.platform,order_id:meta.order_id,amount:meta.amount};
- userName=meta.name||"";awaitName=false;
- log.innerHTML="";
- add(`Switched to your ${meta.product} case.`,"bot");
- showResult(v,false);
- loadCaseList()}
-document.addEventListener("click",e=>{const b=e.target.closest("[data-case]");if(b)switchCase(JSON.parse(b.dataset.case))});
-function showLetter(t){$("letterText").textContent=t;$("letterEmpty").hidden=true;$("letterDoc").hidden=false}
-function resetCase(){caseId=null;done=false;lastStatus=null;caseEndState=null;info={};prevStatus=null;lastStage=null;$("letterDoc").hidden=true;$("letterEmpty").hidden=false;render(null)}
-function startNewCase(){
- if(window.speechSynthesis)speechSynthesis.cancel();
- resetCase();
- awaitName=true;userName="";
- log.innerHTML="";
- vb("");
- const m="I'm sorry you're dealing with this. Let's sort it out together. What name should I sign your letters with? (Tap Skip to leave it blank.)";
- add(m,"bot");speak(m);
- chips();
- loadCaseList()}
-$("newCase").onclick=startNewCase;
+function renderCase(r){
+ document.body.classList.remove("nocase");$("start").hidden=true;$("case").hidden=false;
+ const L=LABEL[r.status]||["Open",""];$("cBadge").className="badge "+L[1];$("cBadge").textContent=L[0];
+ $("cTitle").textContent=(info.product||"Your complaint")+(info.platform?" from "+info.platform:"");
+ $("cMeta").innerHTML=[["Order",info.order_id],["Amount",info.amount]].filter(x=>x[1]).map(x=>`<span>${x[0]}: ${esc(x[1])}</span>`).join("");
+ lastR=r;renderNext(r);renderTrack(r)}
+function renderChips(){
+ const b=[];CHIPS.forEach(k=>{if(caseId&&lastStatus&&k[2].includes(lastStatus))b.push(k)});
+ $("chips").innerHTML=b.map(k=>`<button data-q="${esc(k[1])}"${k[3]?` class="${k[3]}"`:""}>${esc(k[0])}</button>`).join("")}
+function showLetter(t){const si=STEPS.findIndex(k=>(lastStage||"").toLowerCase().includes(k[0])),to=si<=0?(info.platform||"The seller"):STEPS[si][1];
+ $("lMeta").innerHTML=`<dt>To</dt><dd>${esc(to)}</dd><dt>Subject</dt><dd>${esc("Complaint about "+(info.product||"my order")+(info.order_id?" (Order "+info.order_id+")":""))}</dd>`;$("sheet").textContent=t;$("lEmpty").hidden=true;$("lDoc").hidden=false}
+async function loadCases(){
+ try{const d=await(await post("/api/tool/list_cases")).json(),items=d.cases||[],L=$("caseList");
+  if(!items.length){L.innerHTML='<li class="note" style="padding:6px 10px">No complaints yet.</li>';return}
+  L.innerHTML=items.map(c=>{const l=LABEL[c.status]||[c.status,""];
+   return`<li><button class="${c.case_id===caseId?"active":""}" data-case='${esc(JSON.stringify(c))}'><span class="n">${esc(c.product||"Complaint")}${c.platform?" · "+esc(c.platform):""}</span><span class="badge ${esc(l[1])}">${esc(l[0])}</span></button></li>`}).join("")}catch(e){}}
 function showResult(r,force){
  if(r.case_id&&r.case_id!==caseId){caseId=r.case_id;caseStart=Date.now()-(r.day||0)*864e5}
- if(r.tool==="start_case"&&r.args){info={...info,...r.args};if(r.args.name)userName=r.args.name;awaitName=false}
- if(r.tool==="start_case")loadCaseList();
- if(r.status){lastStatus=r.status;done=/resolved|closed|ready_to_file/.test(r.status);if(done)caseEndState=classifyEndState(r.status);
+ if(r.tool==="start_case"&&r.args){info={...info,...r.args};if(r.args.name)userName=r.args.name;awaitName=false;loadCases()}
+ if(r.status){if(r.status!==prevStatus)replied=false;lastStatus=r.status;done=/resolved|closed|ready_to_file/.test(r.status);endState=done?classify(r.status):null;
   if(r.status==="waiting"&&(prevStatus!=="waiting"||r.stage!==lastStage)){winStart=r.day;winTotal=r.days_left}
   prevStatus=r.status;lastStage=r.stage||lastStage}
- if(r.tool)logCall(r.tool,r.args);
- const shownDraft=r.draft&&(force||/draft_ready|ready_to_file/.test(r.status||""));
- const msg=(force&&shownDraft)?"Here's your letter — check it on the left.":(r.say||"Done.");
+ const shown=r.draft&&(force||/draft_ready|ready_to_file/.test(r.status||""));
+ const msg=(force&&shown)?"Here's your letter. It's in the Letter section.":(r.say||"Done.");
  add(msg,"bot");speak(msg);
- if(shownDraft)showLetter(r.draft);
- render(r)}
-
-const SHOW_OLD=/\b(letter|draft|show)\b/i;
-const STALE_CMD=/\b(sent|mailed|emailed|submitted|resolved|refund(ed)?|fixed|file|stop|skip|advance|\d+\s*days?|replied|responded)\b/i;
-const REOPEN=/\b(reopen|re-?open|look into it again|same issue again|continue (this|it))\b/i;
+ if(shown){showLetter(r.draft)}
+ if(r.status){renderCase(r)}
+ renderChips();loadCases();
+ if(shown&&r.status==="draft_ready")view("case")}
+async function switchCase(m){
+ const r=await post("/api/tool/get_next_step",{case_id:m.case_id});if(!r.ok)return;
+ const v=await r.json();prevStatus=null;lastStage=null;endState=null;
+ info={product:m.product,platform:m.platform,order_id:m.order_id,amount:m.amount};userName=m.name||"";awaitName=false;
+ log.innerHTML="";$("lDoc").hidden=true;$("lEmpty").hidden=false;caseId=null;
+ add("Opened your "+(m.product||"complaint")+" case.","bot");showResult(v,true);view("case")}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-case]");if(b)switchCase(JSON.parse(b.dataset.case))});
+function newCase(){
+ if(window.speechSynthesis)speechSynthesis.cancel();
+ caseId=null;done=false;lastStatus=null;endState=null;info={};prevStatus=null;lastStage=null;awaitName=true;userName="";
+ document.body.classList.add("nocase");$("case").hidden=true;$("start").hidden=false;$("busy").hidden=true;$("lDoc").hidden=true;$("lEmpty").hidden=false;$("prob").value="";
+ log.innerHTML="";vb("");add("Describe the problem on the left, or type it here. I'll write your letter.","bot");renderChips();loadCases();view("case");$("prob").focus()}
+$("newCase").onclick=$("newM").onclick=newCase;
+const SHOW=/\b(letter|draft|show)\b/i,STALE_CMD=/\b(sent|mailed|emailed|submitted|resolved|refund(ed)?|fixed|file|stop|skip|advance|\d+\s*days?|replied|responded)\b/i,REOPEN=/\b(reopen|re-?open|look into it again|same issue again|continue (this|it))\b/i;
 async function handle(text){
- text=text.trim();if(!text)return;add(text,"me");
- const forceShow=SHOW_OLD.test(text);
+ text=text.trim();if(!text)return;lastText=text;add(text,"me");const force=SHOW.test(text);
  try{
   if(caseId&&done){
-   if(forceShow){showResult(await callUnderstand(text),true);return}
+   if(force){showResult(await callUnderstand(text),true);return}
    if(REOPEN.test(text)){showResult(await callUnderstand(text));return}
-   if(STALE_CMD.test(text)){add(staleCaseReply(text,caseEndState),"bot");return}
-   resetCase()}
+   if(STALE_CMD.test(text)){add(staleReply(text),"bot");return}
+   newCase();add(text,"me")}
+  if(awaitName){const n=await callUnderstand("skip");awaitName=false}
   const r=await callUnderstand(text);
-  if("name" in r){
-   awaitName=false;
-   if(r.name){userName=r.name;const m="Nice to meet you, "+userName+". Now tell me what went wrong, like: my earbuds from Amazon arrived broken, order OD-12345, Rs 2499.";add(m,"bot");speak(m)}
-   else add("No problem, I'll leave the name blank. Tell me what went wrong, like: my earbuds from Amazon arrived broken, order OD-12345, Rs 2499.","bot");
-   chips();return}
-  showResult(r,forceShow)
- }catch(e){add("I couldn't reach the server. Is it running on this address?","bot")}}
-document.addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;const q=b.dataset.q;if(q==="stop"&&!confirm("Stop this case? Your history stays saved."))return;if(q==="they replied"){add(q,"me");add("Did they fix it? If yes, tap “It's resolved”. If not, you don't need to do anything yet. When the reply window ends I'll move your case up the ladder.","bot");return}handle(q)});
+  if("name" in r){awaitName=false;if(r.name)userName=r.name;return}
+  showResult(r,force)
+ }catch(e){$("err").classList.add("show");toast("Can't reach the server. Check it's running, then try again.");if(caseId)view("chat")}}
+$("retry").onclick=()=>{$("err").classList.remove("show");const t=lastText;log.lastChild&&log.lastChild.textContent===t&&log.lastChild.remove();handle(t)};
+$("begin").onclick=()=>{
+ const v=id=>$(id).value.trim(),p=v("prob");if(!p){toast("Describe what happened first.");$("prob").focus();return}
+ const msg=p+(v("pf")?". Platform: "+v("pf"):"")+(v("oid")?", order "+v("oid"):"")+(v("amt")?", Rs "+v("amt"):"")+(v("want")?". I want a "+v("want"):"");
+ const row=(k,x)=>x?`<dt>${k}</dt><dd>${esc(x)}</dd>`:"";
+ ask("Check before we write your letter",`<dl class="kv">${row("Problem",p)}${row("Seller",v("pf"))}${row("Order ID",v("oid"))}${row("Amount",v("amt")&&"Rs "+v("amt"))}${row("You want",v("want"))}</dl><label>Name to sign the letter <small>Optional</small><input type="text" id="nm2" autocomplete="name"></label><p class="note">We'll write a draft. Nothing is sent.</p>`,"Write my letter",async()=>{
+  $("start").hidden=true;$("busy").hidden=false;
+  try{const n=($("nm2").value||"").trim();if(awaitName){const r=await callUnderstand(n||"skip");awaitName=false;if(r&&r.name)userName=r.name;else if(n)userName=n}await handle(msg)}catch(e){$("err").classList.add("show")}
+  $("busy").hidden=true;if(!caseId)$("start").hidden=false})};
+document.querySelectorAll("[data-ex]").forEach(b=>b.onclick=()=>{$("prob").value=EX[b.dataset.ex];$("prob").focus()});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;const q=b.dataset.q;
+ if(q==="stop"){ask("Stop this case?","<p>Your history stays saved and you can reopen it any time.</p>","Stop case",()=>handle("stop"));return}
+ if(q==="they replied"){replied=true;add(q,"me");if(lastR)renderNext(lastR);view("case");return}
+ if(q==="notyet"){replied=false;if(lastR)renderNext(lastR);toast("OK. We'll keep tracking the reply window.");return}
+ handle(q)});
 $("go").onclick=()=>{const v=$("in").value;$("in").value="";handle(v)};
 $("in").onkeydown=e=>{if(e.key==="Enter")$("go").click()};
-$("mute").onclick=e=>{voice=!voice;e.target.textContent=voice?"Voice on":"Voice off";e.target.setAttribute("aria-pressed",voice);if(!voice){speechSynthesis.cancel();vb("")}};
-const LT=()=>$("letterText").innerText;
-$("copy").onclick=e=>{navigator.clipboard.writeText(LT()).then(()=>{e.target.textContent="Copied";setTimeout(()=>e.target.textContent="Copy letter",1500)})};
+/* letter actions */
+const LT=()=>$("sheet").innerText;
+$("copy").onclick=()=>navigator.clipboard.writeText(LT()).then(()=>toast("Letter copied"),()=>toast("Couldn't copy. Select the text and copy it manually."));
+$("dl").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([LT()],{type:"text/plain"}));a.download="complaint-letter.txt";a.click();URL.revokeObjectURL(a.href);toast("Letter downloaded")};
 $("wa").onclick=()=>open("https://wa.me/?text="+encodeURIComponent(LT()),"_blank");
 $("mail").onclick=()=>{location.href="mailto:?subject="+encodeURIComponent("Complaint about "+(info.product||"my order"))+"&body="+encodeURIComponent(LT())};
 $("pdf").onclick=()=>print();
-$("edit").onclick=e=>{const t=$("letterText"),on=t.contentEditable!=="true";t.contentEditable=on;e.target.textContent=on?"Done editing":"Edit";if(on)t.focus()};
-$("demo").ontoggle=ping;ping();
+$("edit").onclick=e=>{const t=$("sheet"),on=t.contentEditable!=="true";t.contentEditable=on;e.target.textContent=on?"Done editing":"Edit";if(on)t.focus()};
+/* demo tools only with ?demo */
+if(/[?&]demo\b/.test(location.search)){document.body.classList.add("demo");fetch("/").then(r=>{$("mcp").textContent=r.ok?"Server: connected":"Server: offline"}).catch(()=>{$("mcp").textContent="Server: offline"})}
+/* mic */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(!SR){$("mic").disabled=true;$("mic").title="Speech recognition needs Chrome or Edge"}
-else{
- const r=new SR();r.lang="en-IN";r.interimResults=true;
- let on=false,handled=false;
- r.onresult=e=>{
-  const last=e.results[e.results.length-1];
-  if(!last.isFinal){$("in").value=last[0].transcript;return}
-  if(handled)return;handled=true;$("in").value="";handle(last[0].transcript);r.stop()};
- r.onstart=()=>{handled=false;vb("Listening...")};
- r.onend=r.onerror=()=>{on=false;$("mic").classList.remove("on");if($("voice").textContent==="Listening...")vb("")};
- $("mic").onclick=()=>{if(on)return r.stop();on=true;$("mic").classList.add("on");r.start()};
-}
-render(null);
-loadCaseList();
-add("I'm sorry you're dealing with this. Let's sort it out together. What name should I sign your letters with? (Tap Skip to leave it blank.)","bot");
+if(!SR){$("mic").disabled=true;$("mic").title="Speech input needs Chrome or Edge"}
+else{const r=new SR();r.lang="en-IN";r.interimResults=true;let on=false,handled=false;
+ r.onresult=e=>{const l=e.results[e.results.length-1];if(!l.isFinal){$("in").value=l[0].transcript;return}if(handled)return;handled=true;$("in").value="";handle(l[0].transcript);r.stop()};
+ r.onstart=()=>{handled=false;vb("Listening…")};
+ r.onend=r.onerror=()=>{on=false;$("mic").classList.remove("on");if($("vb").textContent==="Listening…")vb("")};
+ $("mic").onclick=()=>{if(on)return r.stop();on=true;$("mic").classList.add("on");r.start()}}
+function enterApp(){document.body.classList.remove("landing");scrollTo(0,0)}
+document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(!g)return;const k=g.dataset.go;if(k==="home"){document.body.classList.add("landing");scrollTo(0,0);return}enterApp();if(k==="new")newCase()});
+$("trustBtn2").onclick=$("trustBtn3").onclick=$("trustBtn").onclick;
+view("case");newCase();
 </script></body></html>
