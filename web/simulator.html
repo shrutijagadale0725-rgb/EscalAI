@@ -10,6 +10,7 @@ html{scroll-behavior:smooth}
 --pink:#fbb7dd;--pgl:#fdf3b8;
 --pgreen:#dcf8d3;--pgreenL:#c3ecb6;--psalmon:#fde4dd;--psalmonL:#f8cdc2;--pblue:#d6ecfd;--pblueL:#bcdcf6;--pyellow:#fdf7c3;--pyellowL:#efe69b;
 --wait:#8a5200;--waitBg:#fff0cc;--ok:#17703f;--okBg:#dcf5e3;--bad:#b3261e;--badBg:#fdeceb;--bot:#f1f1f4;
+--sw:270px;--cw:380px;--spl:8px;
 --ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;--disp:"Newsreader",Georgia,"Times New Roman",serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;--r:4px}
 *{box-sizing:border-box}html,body{height:100%;margin:0}
 body{font:15px/1.6 var(--ui);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
@@ -32,20 +33,37 @@ h1,h2,h3,p{margin:0}.mut{color:var(--mut)}
 
 /* app shell */
 .mtop{display:flex;align-items:center;gap:10px;padding:8px 20px;background:#fff;border-bottom:1px solid var(--line);flex:none;position:relative;z-index:6}
-.mtop .btn{white-space:nowrap}.mtop .sp{flex:1}.mtop .home{margin-right:6px}#menu{display:none}
-.app{flex:1;min-height:0;display:grid;grid-template-columns:270px minmax(0,1fr) 380px}
-.side{background:var(--surf);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;padding-top:16px}
+.mtop .btn{white-space:nowrap}.mtop .sp{flex:1}.mtop .home{margin-left:6px}#menu{display:none}
+/* 5 tracks: sidebar | splitter | stage | splitter | chat. Widths come from --sw / --cw (set by the splitters). */
+.app{flex:1;min-height:0;display:grid;grid-template-columns:var(--sw) var(--spl) minmax(0,1fr) var(--spl) var(--cw)}
+.side{grid-column:1;grid-row:1;background:var(--surf);display:flex;flex-direction:column;min-height:0;padding-top:16px;overflow:hidden}
 .side .btn.pri{margin:0 14px 16px}
 .side h2{font:600 13px var(--ui);color:var(--mut);padding:0 18px 6px}
 #caseList{list-style:none;margin:0;padding:0 8px;overflow:auto;flex:1}
-#caseList button{width:100%;text-align:left;border:0;background:none;border-radius:var(--r);padding:9px 10px;display:flex;flex-direction:column;gap:3px;align-items:flex-start}
-#caseList button:hover{background:#fff}#caseList button.active{background:#fff;box-shadow:inset 3px 0 var(--coral)}
+#caseList li{position:relative}
+#caseList .cb{width:100%;text-align:left;border:0;background:none;border-radius:var(--r);padding:9px 44px 9px 10px;display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+#caseList .cb:hover{background:#fff}#caseList .cb.active{background:#fff;box-shadow:inset 3px 0 var(--coral)}
+#caseList .del{position:absolute;right:4px;top:6px;width:36px;min-height:36px;padding:0;border:0;background:none;border-radius:var(--r);display:grid;place-items:center;color:#8b8ba3}
+#caseList .del svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#caseList .del:hover,#caseList .del:focus-visible{background:var(--badBg);color:var(--bad)}
 #caseList .n{font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .side .foot{padding:12px 18px;border-top:1px solid var(--line);font-size:13px;color:var(--mut)}
-.stage{overflow:auto;min-width:0;padding:32px clamp(16px,3vw,44px) 56px;background:#fff}
+.stage{grid-column:3;grid-row:1;overflow:auto;min-width:0;padding:32px clamp(16px,3vw,44px) 56px;background:#fff}
 .stage>*{max-width:780px;margin-inline:auto}
-.chatp{background:var(--surf);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.chatp{grid-column:5;grid-row:1;background:var(--surf);display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
 .tabs{display:none}
+
+/* splitters (drag to resize, arrow keys when focused, double-click to reset) */
+.spl{grid-row:1;position:relative;background:#fff;cursor:col-resize;touch-action:none;min-height:0;z-index:2;-webkit-user-select:none;user-select:none}
+#splL{grid-column:2}#splR{grid-column:4}
+.spl::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line);transform:translateX(-50%);transition:width .12s,background .12s}
+.spl::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:44px;border-radius:99px;background:#c4c4d6;transform:translate(-50%,-50%);transition:background .12s,height .12s}
+.spl:hover::before,.spl:focus-visible::before,.spl.drag::before{width:3px;background:var(--coral)}
+.spl:hover::after,.spl:focus-visible::after,.spl.drag::after{background:var(--coral);height:56px}
+.spl:focus-visible{outline:none}
+body.resizing{cursor:col-resize!important;-webkit-user-select:none;user-select:none}
+body.resizing *{cursor:col-resize!important}
+body.resizing .stage,body.resizing #log,body.resizing #caseList{pointer-events:none}
 
 /* start screen */
 .start .back{margin-bottom:6px}
@@ -89,7 +107,9 @@ details ul{margin:0;padding-left:18px;color:var(--mut);font-size:14px}
 
 /* chat */
 .chathd{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff}
-.chathd h2{font:500 21px var(--disp)}
+.vrow{padding:8px 16px;border-bottom:1px solid var(--line);background:#fff}.vrow select{min-height:38px;padding:4px 8px}
+.chathd h2{font:500 21px var(--disp);margin-right:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chathd .btn{flex:none}
 #log{flex:1;overflow:auto;padding:14px 16px}
 .m{max-width:88%;padding:9px 14px;border-radius:12px;margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .me{background:var(--navy);color:#fff;margin-left:auto;border-bottom-right-radius:3px}.bot{background:#fff;border:1px solid var(--line);border-bottom-left-radius:3px}
@@ -189,14 +209,22 @@ footer.lf a,footer.lf button.fl{display:block;color:var(--mut);background:none;b
 footer.lf a:hover,footer.lf button.fl:hover{color:var(--coral)}
 
 /* responsive */
-@media(max-width:1180px){.app{grid-template-columns:240px minmax(0,1fr)}.chatp{display:none}body[data-view=chat] .chatp{display:flex;grid-column:2}body[data-view=chat] .stage{display:none}.tabs{display:flex}.stage{padding-bottom:88px}}
-@media(min-width:801px) and (max-width:1180px){.tabs{left:240px}}
+/* <=1180px: chat becomes a tab; only the sidebar splitter remains */
+@media(max-width:1180px){
+ .app{grid-template-columns:var(--sw) var(--spl) minmax(0,1fr)}
+ #splR{display:none}
+ .chatp{display:none;grid-column:3}
+ body[data-view=chat] .chatp{display:flex}
+ body[data-view=chat] .stage{display:none}
+ .tabs{display:flex}.stage{padding-bottom:88px}}
+@media(min-width:801px) and (max-width:1180px){.tabs{left:calc(var(--sw) + var(--spl))}}
 @media(min-width:801px){#newM{display:none}}
 @media(max-width:900px){.cards4{grid-template-columns:1fr 1fr}.whygrid{grid-template-columns:1fr;gap:40px}}
 @media(max-width:800px){
  #menu{display:inline-flex;align-items:center}
  .mtop{padding:8px 12px;gap:6px}.mtop .btn.sm{padding:0 10px}.mtop .brand span{display:none}
  .app{display:block;overflow:hidden}
+ .spl{display:none!important}
  .side{position:fixed;inset:0 20% 0 0;z-index:20;transform:translateX(-102%);transition:transform .2s;box-shadow:4px 0 24px rgba(0,0,0,.2)}
  body.drawer .side{transform:none}
  .stage,.chatp{height:100%}.stage{display:block}
@@ -215,8 +243,20 @@ footer.lf a:hover,footer.lf button.fl:hover{color:var(--coral)}
  footer.lf .lw{grid-template-columns:1fr 1fr}
 }
 @media(max-width:560px){.cards4{grid-template-columns:1fr}.pc{min-height:300px}.lw{padding:0 18px}}
+/* before a case exists, the form is the only place to type: hide chat + its splitter */
+body.nocase .chatp,body.nocase #splR{display:none!important}
+body.nocase .app{grid-template-columns:var(--sw) var(--spl) minmax(0,1fr)}
+body.nocase .tabs{display:none!important}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
-@media print{body *{visibility:hidden}.sheet,.sheet *{visibility:visible}.sheet{position:absolute;left:0;top:0;border:0;box-shadow:none;width:100%}}
+/* print: only the letter, built into #printOnly at click time */
+#printOnly{display:none}
+@media print{
+ @page{size:A4;margin:0}
+ html,body{height:auto!important;overflow:visible!important;background:#fff!important}
+ body{display:block!important}
+ body>*:not(#printOnly){display:none!important}
+ #printOnly{display:block!important;padding:22mm 24mm;color:#000;font:12pt/1.65 Georgia,"Times New Roman",serif;white-space:pre-wrap}
+}
 </style></head>
 <body data-view="case" class="nocase landing">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="logo-mark" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#dc3519"/><path d="M6.5 25.5H12v-6h6v-6h5.5V9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 12.5L23.5 8.5l4 4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol></svg>
@@ -315,13 +355,15 @@ footer.lf a:hover,footer.lf button.fl:hover{color:var(--coral)}
  <div><b>Trust</b><button class="fl" id="trustBtn3" type="button">How this works</button></div>
 </div></footer>
 </div>
-<header class="mtop"><button class="btn sm home" data-go="home" aria-label="Back to home">← Home</button><button class="brand" data-go="home" aria-label="EscalAI home"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><use href="#logo-mark"/></svg><span>Escal<b>AI</b></span></button><span class="sp"></span><button class="btn sm" id="menu" aria-label="Open complaints">Complaints</button><button class="btn sm pri" id="newM">New complaint</button></header>
-<div class="app">
+<header class="mtop"><button class="brand" data-go="home" aria-label="EscalAI home"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><use href="#logo-mark"/></svg><span>Escal<b>AI</b></span></button><span class="sp"></span><button class="btn sm" id="menu" aria-label="Open complaints">Complaints</button><button class="btn sm pri" id="newM">New complaint</button><button class="btn sm home" data-go="home" aria-label="Back to home">← Home</button></header>
+<div class="app" id="app">
 <aside class="side" aria-label="Your complaints">
  <button class="btn pri" id="newCase">New complaint</button>
  <h2>Your complaints</h2><ul id="caseList"></ul>
  <div class="foot"><button class="btn sm" id="trustBtn">How this works and your data</button><p style="margin-top:8px">Drafts only. We never send anything for you. Not legal advice.</p><div id="demo"><p id="mcp">Server: checking</p><button class="btn sm" data-q="skip ahead 8 days">Skip 8 days</button></div></div>
 </aside>
+
+<div class="spl" id="splL" role="separator" aria-orientation="vertical" aria-label="Resize complaints list" aria-controls="app" tabindex="0" title="Drag to resize · double-click to reset"></div>
 
 <main class="stage" id="stage">
  <div id="start" class="start">
@@ -357,8 +399,11 @@ footer.lf a:hover,footer.lf button.fl:hover{color:var(--coral)}
  </div>
 </main>
 
+<div class="spl" id="splR" role="separator" aria-orientation="vertical" aria-label="Resize chat panel" aria-controls="app" tabindex="0" title="Drag to resize · double-click to reset"></div>
+
 <section class="chatp" aria-label="Conversation">
  <div class="chathd"><h2>Ask or update</h2><button class="btn sm" id="mute" aria-pressed="false">Read aloud: off</button></div>
+ <div class="vrow" id="vrow" hidden><label>Voice<select id="vsel" aria-label="Voice"></select></label></div>
  <div id="log" aria-live="polite"></div>
  <div class="cfoot"><div class="err" id="err" role="alert"><span>Can't reach the server.</span><button class="btn sm" id="retry">Try again</button></div>
   <div id="vb"></div><div class="chips" id="chips"></div>
@@ -366,8 +411,9 @@ footer.lf a:hover,footer.lf button.fl:hover{color:var(--coral)}
   <input type="text" id="in" placeholder="Type a message" autocomplete="off" aria-label="Message"><button class="btn pri" id="go">Send</button></div></div>
 </section>
 </div>
-<dialog id="dlg" aria-labelledby="dT"><form method="dialog"><h2 id="dT"></h2><div id="dB"></div><div class="row"><button class="btn" id="dNo" value="no">Cancel</button><button class="btn pri" id="dOk" value="ok"></button></div></form></dialog>
+<dialog id="dlg" aria-labelledby="dT"><form method="dialog"><h2 id="dT"></h2><div id="dB"></div><div class="row"><button class="btn" id="dNo" type="button" value="no">Cancel</button><button class="btn pri" id="dOk" value="ok"></button></div></form></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="printOnly" aria-hidden="true"></div>
 <nav class="tabs" aria-label="Sections"><button data-view="case">Status</button><button data-view="letter">Letter</button><button data-view="chat">Chat</button></nav>
 
 <script>
@@ -384,16 +430,56 @@ document.querySelector(".tabs").onclick=e=>{const b=e.target.closest("button");i
 $("menu").onclick=()=>document.body.classList.toggle("drawer");
 function add(t,c){const d=document.createElement("div");d.className="m "+c;d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
 function vb(t){$("vb").textContent=t}
-/* voice out (off by default) */
+/* voice out (off by default): prefer a smooth female English voice, let the user change it */
 let bestVoice=null;
-function pickVoice(){const vs=speechSynthesis.getVoices();if(!vs.length)return null;
- const t=[v=>/en-IN/i.test(v.lang),v=>/Google US English/i.test(v.name),v=>/(Online|Natural)/i.test(v.name),v=>/^en/i.test(v.lang)];
- for(const f of t){const m=vs.find(f);if(m)return m}return vs[0]}
-if(window.speechSynthesis){bestVoice=pickVoice();speechSynthesis.onvoiceschanged=()=>{bestVoice=pickVoice()}}
-function speak(t){if(!voice||!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);if(bestVoice)u.voice=bestVoice;u.onstart=()=>vb("Speaking…");u.onend=u.onerror=()=>vb("");speechSynthesis.speak(u)}
-$("mute").onclick=e=>{voice=!voice;e.target.textContent="Read aloud: "+(voice?"on":"off");e.target.setAttribute("aria-pressed",voice);if(!voice&&window.speechSynthesis){speechSynthesis.cancel();vb("")}};
+const FEM=/(neerja|aria|jenny|sonia|libby|natasha|swara|heera|zira|susan|hazel|samantha|karen|veena|moira|tessa|serena|fiona|ava|joanna|google uk english female|google us english|female)/i,
+ MALE=/(\bmale\b|david|mark|george|james|ravi|hemant|prabhat|guy|ryan|alex|daniel|fred|rishi|thomas|oliver)/i;
+const vScore=v=>!/^en/i.test(v.lang)?-100:(MALE.test(v.name)?-50:0)+(FEM.test(v.name)?20:0)+(/natural|online/i.test(v.name)?40:0)+(/google/i.test(v.name)?15:0)+(/en-IN/i.test(v.lang)?5:/en-(US|GB)/i.test(v.lang)?3:0);
+function loadVoices(){const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));if(!vs.length)return;
+ vs.sort((a,b)=>vScore(b)-vScore(a));let saved="";try{saved=localStorage.getItem("escalai.voice")||""}catch(e){}
+ bestVoice=vs.find(v=>v.voiceURI===saved)||vs[0];
+ $("vsel").innerHTML=vs.map(v=>`<option value="${esc(v.voiceURI)}"${v===bestVoice?" selected":""}>${esc(v.name.replace(/^Microsoft /,""))}</option>`).join("")}
+if(window.speechSynthesis){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
+$("vsel").onchange=e=>{bestVoice=speechSynthesis.getVoices().find(v=>v.voiceURI===e.target.value)||bestVoice;try{localStorage.setItem("escalai.voice",e.target.value)}catch(_){}speak("Hi, this is how I will sound.")};
+function speak(t){if(!voice||!window.speechSynthesis)return;speechSynthesis.cancel();
+ const say=t.replace(/\bRs\.?\s*(\d[\d,]*)/gi,"$1 rupees").replace(/\s+/g," ").trim(),parts=(say.match(/[^.!?]+[.!?]*/g)||[say]).map(x=>x.trim()).filter(Boolean);
+ parts.forEach((x,i)=>{const u=new SpeechSynthesisUtterance(x);if(bestVoice){u.voice=bestVoice;u.lang=bestVoice.lang}u.rate=.95;u.pitch=1.05;
+  if(i===0)u.onstart=()=>vb("Speaking…");if(i===parts.length-1)u.onend=u.onerror=()=>vb("");speechSynthesis.speak(u)})}
+$("mute").onclick=e=>{voice=!voice;e.target.textContent="Read aloud: "+(voice?"on":"off"); e.target.setAttribute("aria-pressed",voice);$("vrow").hidden=!voice;if(!voice&&window.speechSynthesis){speechSynthesis.cancel();vb("")}};
+
+/* ===== resizable panels: sidebar (left) and chat (right) ===== */
+const PANE={sw:{min:200,max:440,def:270,key:"escalai.sw",el:"splL",dir:1},cw:{min:300,max:680,def:380,key:"escalai.cw",el:"splR",dir:-1}};
+const W={sw:PANE.sw.def,cw:PANE.cw.def},MIN_STAGE=340,SPL=8;
+try{for(const k in PANE){const v=parseInt(localStorage.getItem(PANE[k].key),10);if(v)W[k]=v}}catch(_){}
+const chatInline=()=>innerWidth>1180;
+function limit(k,v){const o=k==="sw"?(chatInline()?W.cw:0):W.sw,room=innerWidth-MIN_STAGE-SPL*2-o;return Math.round(Math.max(PANE[k].min,Math.min(PANE[k].max,room,v)))}
+function applyW(){
+ W.sw=limit("sw",W.sw);W.cw=limit("cw",W.cw);
+ const r=document.documentElement.style;r.setProperty("--sw",W.sw+"px");r.setProperty("--cw",W.cw+"px");
+ for(const k in PANE){const e=$(PANE[k].el);e.setAttribute("aria-valuemin",PANE[k].min);e.setAttribute("aria-valuemax",PANE[k].max);e.setAttribute("aria-valuenow",W[k])}}
+function saveW(k){try{localStorage.setItem(PANE[k].key,W[k])}catch(_){}}
+function bindSplit(k){
+ const el=$(PANE[k].el),dir=PANE[k].dir;
+ el.addEventListener("pointerdown",e=>{
+  if(e.button!==undefined&&e.button!==0)return;e.preventDefault();
+  const x0=e.clientX,w0=W[k];el.setPointerCapture(e.pointerId);el.classList.add("drag");document.body.classList.add("resizing");
+  const mv=ev=>{W[k]=limit(k,w0+dir*(ev.clientX-x0));applyW()};
+  const up=()=>{el.classList.remove("drag");document.body.classList.remove("resizing");
+   el.removeEventListener("pointermove",mv);el.removeEventListener("pointerup",up);el.removeEventListener("pointercancel",up);saveW(k)};
+  el.addEventListener("pointermove",mv);el.addEventListener("pointerup",up);el.addEventListener("pointercancel",up)});
+ el.addEventListener("keydown",e=>{
+  const step=e.shiftKey?48:16;let d=0;
+  if(e.key==="ArrowRight")d=step;else if(e.key==="ArrowLeft")d=-step;
+  else if(e.key==="Home"){W[k]=PANE[k].min;applyW();saveW(k);e.preventDefault();return}
+  else if(e.key==="End"){W[k]=PANE[k].max;applyW();saveW(k);e.preventDefault();return}
+  else return;
+  e.preventDefault();W[k]=limit(k,W[k]+dir*d);applyW();saveW(k)});
+ el.addEventListener("dblclick",()=>{W[k]=PANE[k].def;applyW();saveW(k)})}
+bindSplit("sw");bindSplit("cw");applyW();addEventListener("resize",applyW);
+
 function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),2400)}
 function ask(title,html,ok,cb,cancel=true){$("dT").textContent=title;$("dB").innerHTML=html;$("dOk").textContent=ok;$("dNo").hidden=!cancel;const d=$("dlg");d.onclose=()=>{if(d.returnValue==="ok"&&cb)cb()};d.returnValue="";d.showModal()}
+$("dNo").onclick=()=>$("dlg").close("no");
 $("trustBtn").onclick=()=>ask("How this works","<p>This tool helps you write and track a consumer complaint.</p><p><b>What it does</b></p><ul><li>Writes complaint letters as drafts</li><li>Tracks how long the company has to reply</li><li>Shows the next official step and links to it</li></ul><p><b>What it does not do</b></p><ul><li>Send messages or contact the company</li><li>File cases for you</li><li>Give legal advice</li></ul><p><b>What is saved</b></p><p>Your name, item, seller, order ID, amount, letters and case history, so you can come back to the case. Never enter card numbers, passwords or OTPs.</p>","Got it",null,false);
 /* api */
 async function callUnderstand(message){
@@ -407,9 +493,16 @@ const STALE={filed:{sent:"This case already went all the way to filing, so there
 function action(t){t=t.toLowerCase();if(/\bfile\b/.test(t))return"file";if(/\bstop\b/.test(t))return"stop";if(/\b(resolved|fixed|refund(ed)?)\b/.test(t))return"resolved";if(/\b(sent|mailed|emailed|submitted|replied|responded)\b/.test(t))return"sent";return null}
 function staleReply(t){const a=action(t);return(endState&&a&&STALE[endState]?.[a])||"This case is finished. Start a new complaint from the sidebar."}
 /* render */
+const FL={platform:["Seller or platform","Amazon"],order_id:["Order ID","OD-12345"],amount:["Amount paid (Rs)","2499"]};
+function missingForm(r){const need=(((r.ask||"").match(/still need:\s*(.+?)\.?$/i)||[])[1]||"platform, order_id, amount").split(/,\s*/).filter(k=>FL[k]);
+ return`<form id="mf" style="display:grid;gap:10px;width:100%;max-width:420px">${need.map(k=>`<label>${FL[k][0]}<input type="text" name="${k}" placeholder="${FL[k][1]}" required></label>`).join("")}<button class="btn pri" type="submit">Write my letter</button></form>`}
+document.addEventListener("submit",async e=>{if(e.target.id!=="mf")return;e.preventDefault();
+ const f=Object.fromEntries([...new FormData(e.target)].map(([k,v])=>[k,String(v).trim()]));
+ try{const x=await post("/api/tool/log_response",{case_id:caseId,event:"answer",...f});if(!x.ok)throw 0;info={...info,...f};showResult(await x.json(),false)}
+ catch(_){toast("Can't reach the server. Try again.")}});
 function renderNext(r){
  const s=r.status,left=r.days_left,st=r.stage||"the seller",btn=(l,q,c)=>`<button class="btn ${c||"pri"}" data-q="${esc(q)}">${esc(l)}</button>`;
- const M={collecting:["","Tell us a bit more","Use the chat to share what you bought, where, and what went wrong."],
+ const M={collecting:["","A few details are missing","Fill these in and we'll write your letter.",missingForm(r)],
  drafting:["","Writing your letter","This takes a moment."],escalating:["","Writing your next letter","This takes a moment."],
  draft_ready:["","Send this letter to "+st,"Email it or send it on WhatsApp, then come back and tap the button so we can start the reply window.",btn("I've sent it","I sent it")],
  waiting:replied?["","Did they fix it?","Tell us what happened so your case stays on the right step.",btn("Yes, it's resolved","it is resolved")+btn("Not yet","notyet","")]:["wait","Nothing to do for "+left+(left===1?" day":" days"),"We're tracking the reply window and your case is saved. If they respond, tell us.",btn("They replied","they replied","")],
@@ -445,7 +538,8 @@ async function loadCases(){
  try{const d=await(await post("/api/tool/list_cases")).json(),items=d.cases||[],L=$("caseList");
   if(!items.length){L.innerHTML='<li class="note" style="padding:6px 10px">No complaints yet.</li>';return}
   L.innerHTML=items.map(c=>{const l=LABEL[c.status]||[c.status,""];
-   return`<li><button class="${c.case_id===caseId?"active":""}" data-case='${esc(JSON.stringify(c))}'><span class="n">${esc(c.product||"Complaint")}${c.platform?" · "+esc(c.platform):""}</span><span class="badge ${esc(l[1])}">${esc(l[0])}</span></button></li>`}).join("")}catch(e){}}
+   const nm=(c.product||"Complaint")+(c.platform?" · "+c.platform:"");
+   return`<li><button class="cb ${c.case_id===caseId?"active":""}" data-case='${esc(JSON.stringify(c))}'><span class="n">${esc(nm)}</span><span class="badge ${esc(l[1])}">${esc(l[0])}</span></button><button class="del" data-del="${esc(c.case_id)}" data-name="${esc(nm)}" aria-label="Delete ${esc(nm)}" title="Delete"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button></li>`}).join("")}catch(e){}}
 function showResult(r,force){
  if(r.case_id&&r.case_id!==caseId){caseId=r.case_id;caseStart=Date.now()-(r.day||0)*864e5}
  if(r.tool==="start_case"&&r.args){info={...info,...r.args};if(r.args.name)userName=r.args.name;awaitName=false;loadCases()}
@@ -453,7 +547,7 @@ function showResult(r,force){
   if(r.status==="waiting"&&(prevStatus!=="waiting"||r.stage!==lastStage)){winStart=r.day;winTotal=r.days_left}
   prevStatus=r.status;lastStage=r.stage||lastStage}
  const shown=r.draft&&(force||/draft_ready|ready_to_file/.test(r.status||""));
- const msg=(force&&shown)?"Here's your letter. It's in the Letter section.":(r.say||"Done.");
+ const msg=r.status==="collecting"?"I need a few more details before I can write your letter.":(force&&shown)?"Here's your letter. It's in the Letter section.":(r.say||"Done.");
  add(msg,"bot");speak(msg);
  if(shown){showLetter(r.draft)}
  if(r.status){renderCase(r)}
@@ -466,12 +560,18 @@ async function switchCase(m){
  log.innerHTML="";$("lDoc").hidden=true;$("lEmpty").hidden=false;caseId=null;
  add("Opened your "+(m.product||"complaint")+" case.","bot");showResult(v,true);view("case")}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-case]");if(b)switchCase(JSON.parse(b.dataset.case))});
+document.addEventListener("click",e=>{const d=e.target.closest("[data-del]");if(!d)return;const id=d.dataset.del;
+ ask("Delete this complaint?",`<p><b>${esc(d.dataset.name)}</b>, its letters and its history will be deleted for good. This can't be undone.</p>`,"Delete",async()=>{
+  try{const r=await post("/api/tool/delete_case",{case_id:id});if(!r.ok)throw 0}catch(_){toast("Couldn't delete. Is the server updated and running?");return}
+  if(prevMeta&&prevMeta.case_id===id)prevMeta=null;
+  if(id===caseId){caseId=null;newCase()}else loadCases();
+  toast("Complaint deleted")})});
 function newCase(){
  if(window.speechSynthesis)speechSynthesis.cancel();
  if(caseId)prevMeta={case_id:caseId,product:info.product,platform:info.platform,order_id:info.order_id,amount:info.amount,name:userName};
  caseId=null;done=false;lastStatus=null;endState=null;info={};prevStatus=null;lastStage=null;awaitName=true;userName="";
  document.body.classList.add("nocase");$("case").hidden=true;$("start").hidden=false;$("busy").hidden=true;$("lDoc").hidden=true;$("lEmpty").hidden=false;$("prob").value="";
- log.innerHTML="";vb("");add("Describe the problem on the left, or type it here. I'll write your letter.","bot");renderChips();loadCases();view("case");setBack();$("prob").focus()}
+ log.innerHTML="";vb("");renderChips();loadCases();view("case");setBack();$("prob").focus()}
 function setBack(){$("backBtn").textContent=prevMeta?"← Back to "+(prevMeta.product||"your case"):"← Back to home"}
 $("backBtn").onclick=()=>{if(prevMeta)switchCase(prevMeta);else nav("home")};
 $("newCase").onclick=$("newM").onclick=newCase;
@@ -490,14 +590,35 @@ async function handle(text){
   showResult(r,force)
  }catch(e){$("err").classList.add("show");toast("Can't reach the server. Check it's running, then try again.");if(caseId)view("chat")}}
 $("retry").onclick=()=>{$("err").classList.remove("show");const t=lastText;log.lastChild&&log.lastChild.textContent===t&&log.lastChild.remove();handle(t)};
+const PF=["amazon","flipkart","myntra","meesho","ajio","nykaa","swiggy","zomato","blinkit","croma"];
+function guess(t){const o={},l=t.toLowerCase(),p=PF.find(x=>l.includes(x));if(p)o.platform=p[0].toUpperCase()+p.slice(1);
+ let rest=t;const a=t.match(/(?:rs\.?|₹|inr)\s*(\d[\d,]*(?:\.\d+)?)|(?<![a-z0-9-])(\d[\d,]*(?:\.\d+)?)\s*(?:rs\b|rupees\b|inr\b|₹)/i);
+ if(a){o.amount=(a[1]||a[2]).replace(/,/g,"");rest=t.replace(a[0]," ")}
+ const m=rest.match(/\b([a-z]{1,4}-?\d{3,})\b/i);if(m)o.order_id=m[1].toUpperCase();return o}
+async function startFromForm(msg,f){
+ lastText=msg;let r=await callUnderstand(msg);
+ if(r.tool==="start_case"){
+  r.args={...(r.args||{}),...Object.fromEntries(Object.entries(f).filter(x=>x[1]))};
+  const a={case_id:r.case_id,event:"answer"};["platform","order_id","amount"].forEach(k=>{if(f[k])a[k]=f[k]});
+  if(r.status==="collecting"&&Object.keys(a).length>2){const x=await post("/api/tool/log_response",a);if(x.ok)r={...r,...await x.json()}}}
+ showResult(r,false)}
 $("begin").onclick=()=>{
  const v=id=>$(id).value.trim(),p=v("prob");if(!p){toast("Describe what happened first.");$("prob").focus();return}
- const msg=p+(v("pf")?". Platform: "+v("pf"):"")+(v("oid")?", order "+v("oid"):"")+(v("amt")?", Rs "+v("amt"):"")+(v("want")?". I want a "+v("want"):"");
+ const g=guess(p),pf=v("pf")||g.platform||"",oid=v("oid")||g.order_id||"",amt=v("amt")||g.amount||"",want=v("want");
  const row=(k,x)=>x?`<dt>${k}</dt><dd>${esc(x)}</dd>`:"";
- ask("Check before we write your letter",`<dl class="kv">${row("Problem",p)}${row("Seller",v("pf"))}${row("Order ID",v("oid"))}${row("Amount",v("amt")&&"Rs "+v("amt"))}${row("You want",v("want"))}</dl><label>Name to sign the letter <small>Optional</small><input type="text" id="nm2" autocomplete="name"></label><p class="note">We'll write a draft. Nothing is sent.</p>`,"Write my letter",async()=>{
+ ask("Almost there",`<dl class="kv">${row("Problem",p)}${row("You want",want)}</dl>
+  <div style="display:grid;gap:12px;margin-top:10px">
+  <label>Your name <small>Optional, signs the letter</small><input type="text" id="nm2" autocomplete="name"></label>
+  <label>Seller or platform<input type="text" id="pf2" value="${esc(pf)}" placeholder="Amazon"></label>
+  <label>Order ID<input type="text" id="oid2" value="${esc(oid)}" placeholder="OD-12345"></label>
+  <label>Amount paid (Rs)<input type="text" id="amt2" inputmode="numeric" value="${esc(amt)}" placeholder="2499"></label></div>
+  <p class="note" style="margin-top:10px">We'll write a draft. Nothing is sent.</p>`,"Write my letter",async()=>{
+  const f={platform:$("pf2").value.trim(),order_id:$("oid2").value.trim(),amount:$("amt2").value.trim()},n=($("nm2").value||"").trim();
+  const msg=p+(f.platform?". Platform: "+f.platform:"")+(f.order_id?", order "+f.order_id:"")+(f.amount?", Rs "+f.amount:"")+(want?". I want a "+want:"");
   $("start").hidden=true;$("busy").hidden=false;
-  try{const n=($("nm2").value||"").trim();if(awaitName){const r=await callUnderstand(n||"skip");awaitName=false;if(r&&r.name)userName=r.name;else if(n)userName=n}await handle(msg)}catch(e){$("err").classList.add("show")}
-  $("busy").hidden=true;if(!caseId)$("start").hidden=false})};
+  try{if(awaitName){const r=await callUnderstand(n||"skip");awaitName=false;if(r&&r.name)userName=r.name;else if(n)userName=n}
+   await startFromForm(msg,f)}catch(e){$("err").classList.add("show");toast("Can't reach the server. Check it's running, then try again.")}
+  $("busy").hidden=true;if(!caseId){$("start").hidden=false}})};
 document.querySelectorAll("[data-ex]").forEach(b=>b.onclick=()=>{$("prob").value=EX[b.dataset.ex];$("prob").focus()});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-q]");if(!b)return;const q=b.dataset.q;
  if(q==="stop"){ask("Stop this case?","<p>Your history stays saved and you can reopen it any time.</p>","Stop case",()=>handle("stop"));return}
@@ -512,7 +633,10 @@ $("copy").onclick=()=>navigator.clipboard.writeText(LT()).then(()=>toast("Letter
 $("dl").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([LT()],{type:"text/plain"}));a.download="complaint-letter.txt";a.click();URL.revokeObjectURL(a.href);toast("Letter downloaded")};
 $("wa").onclick=()=>open("https://wa.me/?text="+encodeURIComponent(LT()),"_blank");
 $("mail").onclick=()=>{location.href="mailto:?subject="+encodeURIComponent("Complaint about "+(info.product||"my order"))+"&body="+encodeURIComponent(LT())};
-$("pdf").onclick=()=>print();
+$("pdf").onclick=()=>{
+ const p=$("printOnly"),t=document.title;p.textContent=LT();document.title="Complaint letter";
+ const done=()=>{document.title=t;p.textContent="";removeEventListener("afterprint",done)};
+ addEventListener("afterprint",done);print()};
 $("edit").onclick=e=>{const t=$("sheet"),on=t.contentEditable!=="true";t.contentEditable=on;e.target.textContent=on?"Done editing":"Edit";if(on)t.focus()};
 /* demo tools only with ?demo */
 if(/[?&]demo\b/.test(location.search)){document.body.classList.add("demo");fetch("/").then(r=>{$("mcp").textContent=r.ok?"Server: connected":"Server: offline"}).catch(()=>{$("mcp").textContent="Server: offline"})}
