@@ -16,30 +16,51 @@ def _history(s):
 def draft_letter(s, stage, sender="[Your name]"):
     sid, facts = stage["id"], _facts(s)
     hist = "\n".join(f"- {h}" for h in _history(s)) or "- (none yet)"
-    head = f"Regarding: {s['product']} ({facts}) on {s['platform']}"
+    issue, amt, days = _sentence(s["issue"]), s["amount"], stage.get("window_days")
     if sid == "seller":
         return (
-            f"Subject: Complaint about {s['product']}, order {s['order_id']}\n\n"
-            f"Dear Customer Service Team,\n\n"
-            f"I am writing to report a problem with my recent order of {s['product']} "
-            f"on {s['platform']} ({facts}). {_sentence(s['issue'])}.\n\n"
-            f"I would appreciate a full refund or a replacement within {stage['window_days']} days. "
-            f"Photos and the invoice are attached for your reference.\n\n"
+            f"Subject: Complaint and refund request: {s['product']}, order {s['order_id']}\n\n"
+            f"Dear Customer Support Team,\n\n"
+            f"I am writing to formally complain about my order of {s['product']} on {s['platform']} ({facts}).\n\n"
+            f"Issue: {issue}.\n"
+            f"I request a full refund of Rs. {amt} or a replacement within {days} days of this letter, "
+            f"and a written confirmation of the action you will take.\n\n"
+            f"Attached: invoice and photos showing the problem.\n"
+            f"If this is not resolved, I will escalate to your Grievance Officer and, if needed, "
+            f"to the National Consumer Helpline and the Consumer Commission.\n\n"
             f"Regards,\n{sender}"
         )
     if sid == "grievance_officer":
         return (
-            f"Subject: Unresolved complaint, order {s['order_id']}\n\n"
-            f"To the Grievance Officer, {s['platform']},\n\n{head}.\n\n{s['issue']}\n\n"
-            f"I have already contacted the seller with no resolution:\n{hist}\n\n"
-            f"Please acknowledge this complaint and resolve it within {stage['window_days']} days.\n\n"
+            f"Subject: Formal complaint to the Grievance Officer: order {s['order_id']}, Rs. {amt}\n\n"
+            f"To the Grievance Officer,\n{s['platform']}\n\n"
+            f"I am escalating my unresolved complaint about {s['product']} ({facts}).\n\n"
+            f"Issue: {issue}.\n"
+            f"Steps already taken, without resolution:\n{hist}\n\n"
+            f"Under the Consumer Protection (E-Commerce) Rules, 2020, a Grievance Officer must acknowledge "
+            f"a complaint within 48 hours and redress it within one month of receipt. I therefore request that you:\n"
+            f"1. Acknowledge this complaint in writing within 48 hours.\n"
+            f"2. Refund Rs. {amt} in full, or replace the product, within {days} days.\n\n"
+            f"If this is not resolved in that time, I will escalate to the National Consumer Helpline and "
+            f"file a complaint before the Consumer Commission through e-Jagriti. "
+            f"I am keeping a record of all communication.\n\n"
             f"Regards,\n{sender}"
         )
     if sid == "helpline":
         return (
-            f"Complaint summary for the National Consumer Helpline\n\n{head}\n\n"
-            f"Problem: {s['issue']}\n\nSteps already taken:\n{hist}\n\n"
-            f"Relief sought: refund of Rs. {s['amount']} or replacement.\n\n{sender}"
+            f"Subject: Consumer complaint against {s['platform']}: order {s['order_id']}, Rs. {amt}\n\n"
+            f"To the National Consumer Helpline,\n\n"
+            f"I request your help with a complaint that the company has not resolved.\n\n"
+            f"Company: {s['platform']}\n"
+            f"Product: {s['product']}\n"
+            f"Order: {s['order_id']}\n"
+            f"Amount paid: Rs. {amt}\n"
+            f"Issue: {issue}.\n"
+            f"Steps already taken, without resolution:\n{hist}\n"
+            f"Relief sought: a full refund of Rs. {amt} or a replacement.\n\n"
+            f"Please take this up with the company on my behalf. If it stays unresolved, "
+            f"I intend to file a case before the Consumer Commission through e-Jagriti.\n\n"
+            f"Regards,\n{sender}"
         )
     return case_file(s)
 
@@ -65,14 +86,22 @@ def _commission_tier(amount):
 def case_file(s):
     tl = "\n".join(f"- {t}" for t in s.get("timeline", []))
     tier = _commission_tier(s.get("amount"))
-    tier_line = f" Based on this claim value, that likely means the {tier}." if tier else ""
+    tier_line = f"Likely forum, based on claim value: {tier}.\n" if tier else ""
+    bought = f"Purchased on: {s['purchase_date']}\n" if s.get("purchase_date") else ""
     return (
         "CASE FILE (for filing with the Consumer Commission)\n\n"
-        f"Product: {s['product']}\nPlatform: {s['platform']}\nOrder: {s['order_id']}\n"
-        f"Amount claimed: Rs. {s['amount']}\nProblem: {s['issue']}\n\nTimeline:\n{tl}\n\n"
-        "Attach: invoice, photos, and every letter listed above.\n"
-        f"File at e-Jagriti (e-jagriti.gov.in), the current portal for consumer complaints.{tier_line}\n"
-        "Exact fees and jurisdiction still depend on claim value — verify current fees and the "
+        f"Complainant: {s.get('name') or '[Your name]'}\n"
+        f"Opposite party: {s['platform']}\n\n"
+        f"Product: {s['product']}\nOrder: {s['order_id']}\n{bought}"
+        f"Amount paid and claimed: Rs. {s['amount']}\n\n"
+        f"Issue: {_sentence(s['issue'])}.\n\n"
+        f"Chronology:\n{tl}\n\n"
+        f"Relief sought: refund of Rs. {s['amount']} or replacement of the product, "
+        "plus any compensation you wish to claim.\n\n"
+        "Documents to attach: invoice, photos, and every letter and reply listed in the chronology.\n\n"
+        f"{tier_line}"
+        "File at e-Jagriti (e-jagriti.gov.in), the current portal for consumer complaints.\n"
+        "Exact fees and jurisdiction still depend on claim value. Verify current fees and the "
         "correct commission on e-jagriti.gov.in before filing. This is not legal advice."
     )
 
@@ -91,7 +120,7 @@ def make_polisher():
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={"Authorization": f"Bearer {key}"},
                 json={"model": model, "temperature": 0.2, "messages": [
-                    {"role": "system", "content": "Rewrite the letter to be polite, firm and clear. Keep every fact, date, number and order ID exactly. Add no new facts. Return only the letter."},
+                    {"role": "system", "content": "Rewrite this consumer complaint letter so it is firm, formal, concise and easy to act on. Keep every fact, date, number, order ID, deadline and timeline line exactly as written. Do not add facts, laws, section numbers or threats that are not already in the letter. Keep the subject line, numbered requests and sign-off. Return only the letter."},
                     {"role": "user", "content": text}]},
                 timeout=20,
             )
@@ -99,7 +128,8 @@ def make_polisher():
             out = r.json()["choices"][0]["message"]["content"].strip()
         except Exception:
             return text
-        return out if all(m in out for m in (s["order_id"], str(s["amount"]))) else text
+        must = (s["order_id"], str(s["amount"]), *_history(s))
+        return out if all(m in out for m in must) else text
 
     return polish
 
