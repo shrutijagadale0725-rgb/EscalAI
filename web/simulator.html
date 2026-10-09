@@ -1,164 +1,323 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Escalation Agent – consumer complaint help</title>
+<title>EscalAI – consumer complaint help</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%228%22%20fill%3D%22%23dc3519%22/%3E%3Cpath%20d%3D%22M6.5%2025.5H12v-6h6v-6h5.5V9%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M19.5%2012.5L23.5%208.5l4%204%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Serif&family=Mrs+Saint+Delafield&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
 <style>
-html{scroll-behavior:smooth}:root{--bg:#fbf5ea;--surf:#fffdf8;--ink:#2a2623;--mut:#675e55;--line:#e8dccb;--pri:#c8326f;--priH:#a8265a;--onpri:#fff;--priBg:#fbe7ef;--pink:#e0508a;--blue:#3b69b0;--wait:#955306;--waitBg:#fdf1de;--ok:#16754a;--okBg:#e3f4ea;--bad:#b42318;--badBg:#fdeceb;--bot:#f3ebdd;
---ui:"DM Mono",ui-monospace,Menlo,Consolas,monospace;--disp:"Instrument Serif",Georgia,"Times New Roman",serif;--script:"Mrs Saint Delafield","Brush Script MT",cursive;--doc:"Source Serif 4",Georgia,serif;--r:8px}
+html{scroll-behavior:smooth}
+:root{--bg:#fff;--gray:#f1f1f1;--surf:#f7f7f8;--navy:#0c0c3d;--ink:#0c0c3d;--mut:#51516f;--line:#dedee8;--coral:#dc3519;--coralH:#bf2a10;
+--pink:#fbb7dd;--pgl:#fdf3b8;
+--pgreen:#dcf8d3;--pgreenL:#c3ecb6;--psalmon:#fde4dd;--psalmonL:#f8cdc2;--pblue:#d6ecfd;--pblueL:#bcdcf6;--pyellow:#fdf7c3;--pyellowL:#efe69b;
+--wait:#8a5200;--waitBg:#fff0cc;--ok:#17703f;--okBg:#dcf5e3;--bad:#b3261e;--badBg:#fdeceb;--bot:#f1f1f4;
+--ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;--disp:"Newsreader",Georgia,"Times New Roman",serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;--r:4px}
 *{box-sizing:border-box}html,body{height:100%;margin:0}
-body{font:14px/1.65 var(--ui);background:var(--bg);color:var(--ink);padding:env(safe-area-inset-top,0) 0 0}
-button,input,textarea{font:inherit;color:inherit}button{cursor:pointer;min-height:44px}
-:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+body{font:15px/1.6 var(--ui);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+body:not(.landing){display:flex;flex-direction:column}
+button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer;min-height:44px}
+:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
 h1,h2,h3,p{margin:0}.mut{color:var(--mut)}
-.btn{border:1px solid var(--line);background:var(--surf);border-radius:var(--r);padding:0 16px;font-weight:600}
-.btn:hover{border-color:var(--mut)}.btn.pri{background:var(--pri);border-color:var(--pri);color:var(--onpri)}.btn.pri:hover{background:var(--priH)}
-.btn.danger{color:var(--bad)}.btn.sm{min-height:36px;padding:0 12px;font-size:14px}
-.badge{display:inline-block;border-radius:99px;padding:1px 10px;font-size:13px;font-weight:600;background:var(--priBg);color:var(--pri);white-space:nowrap}
-.badge.wait{background:var(--waitBg);color:var(--wait)}.badge.ok{background:var(--okBg);color:var(--ok)}.badge.mut{background:var(--bot);color:var(--mut)}
+.lg{width:30px;height:30px;flex:none;display:block}
 
-/* layout */
-.app{height:100%;display:grid;grid-template-columns:270px minmax(0,1fr) 380px}
-.side{background:var(--surf);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-.brand{padding:18px 18px 12px;font-weight:700;font-size:17px;letter-spacing:-.01em}
-.side .btn.pri{margin:0 14px 14px}
-.side h2{font-size:13px;font-weight:600;color:var(--mut);padding:0 18px 6px}
+/* buttons + badges */
+.btn{border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:var(--r);padding:0 18px;font-weight:600;transition:background .15s,color .15s,transform .15s}
+.btn:hover{background:var(--navy);color:#fff}
+.btn.pri{background:var(--coral);border-color:var(--coral);color:#fff}.btn.pri:hover{background:var(--coralH);border-color:var(--coralH)}
+.btn.dk{background:var(--navy);color:#fff}.btn.dk:hover{background:#26267a;border-color:#26267a}
+.btn.danger{color:var(--bad);border-color:var(--bad)}.btn.sm{min-height:38px;padding:0 14px;font-size:14px}
+.badge{display:inline-block;border-radius:3px;padding:1px 9px;font-size:12.5px;font-weight:600;background:var(--pblue);color:var(--navy);white-space:nowrap}
+.badge.wait{background:var(--waitBg);color:var(--wait)}.badge.ok{background:var(--okBg);color:var(--ok)}.badge.mut{background:var(--bot);color:var(--mut)}
+.brand{display:inline-flex;align-items:center;gap:9px;font:600 23px/1 var(--disp);letter-spacing:-.01em;color:var(--navy);background:none;border:0;padding:0;min-height:44px;cursor:pointer}
+.brand b{color:var(--coral);font-weight:600}
+
+/* app shell */
+.mtop{display:flex;align-items:center;gap:10px;padding:8px 20px;background:#fff;border-bottom:1px solid var(--line);flex:none;position:relative;z-index:6}
+.mtop .btn{white-space:nowrap}.mtop .sp{flex:1}.mtop .home{margin-right:6px}#menu{display:none}
+.app{flex:1;min-height:0;display:grid;grid-template-columns:270px minmax(0,1fr) 380px}
+.side{background:var(--surf);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;padding-top:16px}
+.side .btn.pri{margin:0 14px 16px}
+.side h2{font:600 13px var(--ui);color:var(--mut);padding:0 18px 6px}
 #caseList{list-style:none;margin:0;padding:0 8px;overflow:auto;flex:1}
-#caseList button{width:100%;text-align:left;border:0;background:none;border-radius:var(--r);padding:8px 10px;display:flex;flex-direction:column;gap:2px;align-items:flex-start}
-#caseList button:hover{background:var(--bg)}#caseList button.active{background:var(--priBg)}
+#caseList button{width:100%;text-align:left;border:0;background:none;border-radius:var(--r);padding:9px 10px;display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+#caseList button:hover{background:#fff}#caseList button.active{background:#fff;box-shadow:inset 3px 0 var(--coral)}
 #caseList .n{font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .side .foot{padding:12px 18px;border-top:1px solid var(--line);font-size:13px;color:var(--mut)}
-.stage{overflow:auto;min-width:0;padding:28px clamp(16px,3vw,40px) 48px}
-.stage>*{max-width:760px;margin-inline:auto}
+.stage{overflow:auto;min-width:0;padding:32px clamp(16px,3vw,44px) 56px;background:#fff}
+.stage>*{max-width:780px;margin-inline:auto}
 .chatp{background:var(--surf);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-.mtop{display:none}.tabs{display:none}
+.tabs{display:none}
 
-/* start */
-.start h1{font-size:clamp(26px,4vw,34px);line-height:1.15;letter-spacing:-.02em;margin:24px 0 10px;max-width:18ch}
-.start .lede{max-width:52ch;color:var(--mut);margin-bottom:24px}
-.form{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:14px}
+/* start screen */
+.start .back{margin-bottom:6px}
+.start h1{font:400 clamp(40px,5vw,60px)/1.02 var(--disp);letter-spacing:-.02em;margin:18px 0 12px;max-width:15ch}
+.start .lede{max-width:52ch;color:var(--mut);margin-bottom:26px;font-size:16px}
+.form{background:#fff;border:1.5px solid var(--navy);border-radius:4px;padding:22px;display:grid;gap:16px;box-shadow:7px 7px 0 var(--pblueL)}
 label{font-weight:600;font-size:14px;display:grid;gap:6px}label small{font-weight:400;color:var(--mut)}
-textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);padding:10px 12px;min-height:44px}
+textarea,input[type=text],select{width:100%;border:1.5px solid #c4c4d6;border-radius:var(--r);background:#fff;padding:10px 12px;min-height:44px}
 textarea{min-height:112px;resize:vertical}
-.ex{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:18px;font-size:14px}
-.ex button{min-height:36px;border:1px solid var(--line);background:var(--surf);border-radius:99px;padding:0 14px;font-size:14px}
-.how{list-style:none;padding:0;margin:32px 0 0;display:grid;gap:12px;color:var(--mut);font-size:14px}
-.how b{color:var(--ink)}
+.ex{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:22px;font-size:14px}
+.ex button{min-height:36px;border:1.5px solid var(--navy);background:#fff;border-radius:99px;padding:0 14px;font-size:14px}.ex button:hover{background:var(--pyellow)}
+.more{border-top:1px solid var(--line);padding-top:4px}.more summary{min-height:40px;gap:6px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px;padding-top:22px;border-top:1px solid var(--line);font-size:14px;color:var(--mut)}.trust b{display:block;color:var(--ink);margin-bottom:2px;font:500 19px var(--disp)}
+.busy{padding-top:32px}.busy h1{font:400 34px var(--disp);margin-bottom:6px}.sk{height:14px;border-radius:3px;background:var(--pblue);margin:12px 0;animation:p 1s infinite alternate}.sk:nth-child(3){width:80%}.sk:nth-child(4){width:60%}
 
-/* case */
+/* case screen */
 .chead{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
-.chead h1{font-size:22px;letter-spacing:-.01em;line-height:1.25}
-.meta{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:14px;color:var(--mut);margin-top:4px}
-.track{list-style:none;margin:22px 0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0}
-.track li{position:relative;padding-top:22px;font-size:13px;color:var(--mut);padding-right:8px;line-height:1.35}
-.track li::before{content:"";position:absolute;left:0;right:0;top:6px;height:3px;background:var(--line)}
-.track li::after{content:"";position:absolute;left:0;top:0;width:15px;height:15px;border-radius:50%;background:var(--surf);border:3px solid var(--line)}
-.track li.done::before,.track li.done::after{background:var(--ok);border-color:var(--ok)}
-.track li.on{color:var(--ink);font-weight:600}.track li.on::after{border-color:var(--pri)}.track li.on.wait::after{border-color:var(--wait)}
-.track li.done{color:var(--ink)}.track a{color:var(--pri);display:block;font-weight:400}
-.next{border:1px solid var(--line);border-left:5px solid var(--pri);background:var(--surf);border-radius:var(--r);padding:16px 18px}
-.next.wait{border-left-color:var(--wait)}.next.ok{border-left-color:var(--ok)}.next.mut{border-left-color:var(--line)}
-.next h2{font-size:18px;line-height:1.3;margin-bottom:4px}.next p{color:var(--mut);max-width:58ch;margin-bottom:12px}.next>*:last-child{margin-bottom:0}
+.chead h1{font:400 clamp(32px,4vw,46px)/1.05 var(--disp);letter-spacing:-.02em}
+.meta{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:14px;color:var(--mut);margin-top:6px}
+.track{list-style:none;margin:26px 0;padding:0;display:grid;grid-template-columns:repeat(4,1fr)}
+.track li{position:relative;padding-top:24px;font-size:13px;color:var(--mut);padding-right:8px;line-height:1.35}
+.track li::before{content:"";position:absolute;left:0;right:0;top:7px;height:3px;background:var(--line)}
+.track li::after{content:"";position:absolute;left:0;top:0;width:17px;height:17px;border-radius:50%;background:#fff;border:3px solid var(--line)}
+.track li.done::before,.track li.done::after{background:var(--navy);border-color:var(--navy)}
+.track li.on{color:var(--ink);font-weight:600}.track li.on::after{border-color:var(--coral)}.track li.on.wait::after{border-color:#d98a00}
+.track li.done{color:var(--ink)}.track a{color:var(--coralH);display:block;font-weight:500}
+.next{--c:var(--pblue);--l:var(--pblueL);border-radius:3px;padding:24px 26px;background-color:var(--c);background-image:linear-gradient(var(--l) 1px,transparent 1px),linear-gradient(90deg,var(--l) 1px,transparent 1px);background-size:26px 26px}
+.next.wait{--c:var(--pyellow);--l:var(--pyellowL)}.next.ok{--c:var(--pgreen);--l:var(--pgreenL)}.next.mut{--c:#f1f1f1;--l:#e2e2e6}
+.next h2{font:400 clamp(28px,3vw,36px)/1.05 var(--disp);letter-spacing:-.015em;margin-bottom:8px}.next p{color:#33335a;max-width:58ch;margin-bottom:14px}.next>*:last-child{margin-bottom:0}
 .next .row{display:flex;gap:8px;flex-wrap:wrap}
-.bar{height:8px;background:var(--bot);border-radius:99px;overflow:hidden;margin:4px 0 6px}.bar i{display:block;height:100%;background:var(--wait)}
-.sec{margin-top:28px}.sec>h2{font-size:16px;margin-bottom:10px}
-.sheet{background:#fff;color:#1c2330;border:1px solid var(--line);border-radius:4px;padding:clamp(18px,4vw,36px);font:16px/1.7 var(--doc);white-space:pre-wrap;box-shadow:0 1px 2px rgba(20,30,60,.08)}
-.sheet[contenteditable=true]{outline:2px solid var(--pri)}
-.acts{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 6px}
+.bar{height:8px;background:rgba(12,12,61,.12);border-radius:99px;overflow:hidden;margin:4px 0 6px}.bar i{display:block;height:100%;background:var(--coral)}
+.sec{margin-top:36px}.sec>h2{font:400 clamp(28px,3vw,36px)/1.05 var(--disp);letter-spacing:-.015em;margin-bottom:14px}
+.sheet{background:#fff;color:#14143a;border:1.5px solid var(--navy);border-radius:3px;padding:clamp(20px,4vw,38px);font:400 17.5px/1.7 var(--disp);white-space:pre-wrap;box-shadow:7px 7px 0 var(--pink)}
+.sheet[contenteditable=true]{outline:3px solid var(--coral)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 8px}
 .note{font-size:13px;color:var(--mut)}
-.empty{border:1px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;color:var(--mut)}
-details.hist{margin-top:20px}details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--mut);font-weight:600}
+.empty{border:1.5px dashed #bdbdd0;border-radius:3px;padding:24px;text-align:center;color:var(--mut)}
+details.hist{margin-top:22px}details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--mut);font-weight:600}
 details ul{margin:0;padding-left:18px;color:var(--mut);font-size:14px}
+.lmeta{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:14px;margin-bottom:12px}.lmeta dt{color:var(--mut)}.lmeta dd{margin:0;font-weight:600}
 
 /* chat */
-.chathd{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px}
-.chathd h2{font-size:16px}
+.chathd{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff}
+.chathd h2{font:500 21px var(--disp)}
 #log{flex:1;overflow:auto;padding:14px 16px}
-.m{max-width:88%;padding:9px 13px;border-radius:14px;margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
-.me{background:var(--pri);color:var(--onpri);margin-left:auto;border-bottom-right-radius:4px}.bot{background:var(--bot);border-bottom-left-radius:4px}
+.m{max-width:88%;padding:9px 14px;border-radius:12px;margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.me{background:var(--navy);color:#fff;margin-left:auto;border-bottom-right-radius:3px}.bot{background:#fff;border:1px solid var(--line);border-bottom-left-radius:3px}
 .typing{color:var(--mut);animation:p 1s infinite alternate}@keyframes p{to{opacity:.35}}
-.cfoot{border-top:1px solid var(--line);padding:10px 14px 14px}
+.cfoot{border-top:1px solid var(--line);padding:10px 14px 14px;background:#fff}
 .err{display:none;align-items:center;gap:10px;justify-content:space-between;background:var(--badBg);color:var(--bad);border-radius:var(--r);padding:8px 12px;margin-bottom:10px;font-size:14px}.err.show{display:flex}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.chips button{min-height:36px;border:1px solid var(--line);background:var(--surf);border-radius:99px;padding:0 13px;font-size:14px}
+.chips button{min-height:36px;border:1.5px solid var(--navy);background:#fff;border-radius:99px;padding:0 13px;font-size:14px;font-weight:500}.chips button:hover{background:var(--pyellow)}
 .chips .stop{color:var(--bad);border-color:var(--bad)}
 .in{display:flex;gap:8px}.in input{flex:1;min-width:0}
-.ic{width:44px;padding:0;display:grid;place-items:center;color:var(--pri)}.ic svg{width:20px;height:20px;fill:currentColor}
+.ic{width:44px;padding:0;display:grid;place-items:center;color:var(--navy)}.ic svg{width:20px;height:20px;fill:currentColor}
 .ic.on{background:var(--bad);border-color:var(--bad);color:#fff}.ic:disabled{opacity:.4}
-#vb{font-size:13px;color:var(--pri);font-weight:600;min-height:0;margin-bottom:6px}
+#vb{font-size:13px;color:var(--coralH);font-weight:600;min-height:0;margin-bottom:6px}
 #demo{display:none;margin-top:10px}body.demo #demo{display:block}
 
-/* tablet + mobile */
-@media(max-width:1180px){.app{grid-template-columns:240px minmax(0,1fr)}.chatp{display:none}body[data-view=chat] .chatp{display:flex;grid-column:2}body[data-view=chat] .stage{display:none}.tabs{display:flex}.stage{padding-bottom:88px}}
-@media(max-width:800px){
- .app{display:block}
- .side{position:fixed;inset:0 20% 0 0;z-index:20;transform:translateX(-102%);transition:transform .2s;box-shadow:4px 0 24px rgba(0,0,0,.2)}
- body.drawer .side{transform:none}
- .mtop{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surf);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
- .mtop b{margin-right:auto}
- .stage,.chatp{height:calc(100% - 53px)}
- .stage{display:block}body[data-view=chat] .stage,body[data-view=letter] #secNext{display:none}body[data-view=chat] .chatp{display:flex}
- body[data-view=case] #secLetter{display:none}
- .track{grid-template-columns:1fr 1fr 1fr 1fr;font-size:12px}
- .tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surf);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
- .tabs button{flex:1;border:0;background:none;font-weight:600;color:var(--mut);min-height:52px}.tabs button[aria-current=true]{color:var(--pri);box-shadow:inset 0 3px var(--pri)}
-}
-@media(min-width:801px) and (max-width:1180px){.tabs{left:240px}}
- dialog{border:1px solid var(--line);border-radius:12px;padding:0;max-width:480px;width:calc(100% - 32px);background:var(--surf);color:var(--ink)}
-dialog::backdrop{background:rgba(10,14,25,.5)}dialog form{padding:22px}dialog h2{font-size:18px;margin-bottom:10px}dialog p,dialog dl{margin:0 0 10px}
+/* dialog + toast */
+dialog{border:1.5px solid var(--navy);border-radius:4px;padding:0;max-width:480px;width:calc(100% - 32px);background:#fff;color:var(--ink);box-shadow:8px 8px 0 var(--pblueL)}
+dialog::backdrop{background:rgba(12,12,61,.5)}dialog form{padding:24px}dialog h2{font:400 28px/1.1 var(--disp);margin-bottom:10px}dialog p,dialog dl{margin:0 0 10px}
 dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}dl.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}dl.kv dt{color:var(--mut)}dl.kv dd{margin:0;overflow-wrap:anywhere}
 dialog ul{margin:0 0 10px;padding-left:18px}dialog li{margin-bottom:4px}
-#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:var(--r);opacity:0;pointer-events:none;transition:.2s;z-index:50;max-width:90vw}#toast.show{opacity:1;transform:translate(-50%,0)}
-.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px;padding-top:20px;border-top:1px solid var(--line);font-size:14px;color:var(--mut)}.trust b{display:block;color:var(--ink);margin-bottom:2px}
-.more{border-top:1px solid var(--line);padding-top:4px}.more summary{min-height:40px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-select{width:100%;min-height:44px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);padding:0 10px}
-.busy{padding-top:32px}.busy h1{font-size:22px;margin-bottom:6px}.sk{height:14px;border-radius:6px;background:var(--line);margin:12px 0;animation:p 1s infinite alternate}.sk:nth-child(3){width:80%}.sk:nth-child(4){width:60%}
-.lmeta{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:14px;margin-bottom:10px}.lmeta dt{color:var(--mut)}.lmeta dd{margin:0;font-weight:600}
-@media(max-width:800px){.trust{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
-body.nocase .app{grid-template-columns:270px minmax(0,1fr)}body.nocase .chatp,body.nocase .tabs{display:none!important}.more summary{gap:6px}
-.brand,.chead h1,.next h2,.busy h1,dialog h2,.start h1,.chathd h2,.sec>h2{font-family:var(--disp);font-weight:400}
-.start h1{font-size:clamp(34px,5vw,48px);line-height:1.05;max-width:16ch}.chead h1{font-size:30px}.next h2{font-size:24px}.sec>h2{font-size:24px}.brand{font-size:22px;border:0;background:none;text-align:left;cursor:pointer;min-height:44px}
-.btn{font-family:inherit}.btn.pri{border-radius:99px}.script{font-family:var(--script);font-size:34px;line-height:1;color:var(--pink);display:block;margin-bottom:6px}
-#landing{display:none}body.landing #landing{display:block}body.landing .app,body.landing .mtop,body.landing .tabs{display:none!important}
-.lw{max-width:1000px;margin:0 auto;padding:0 20px}.ld h1,.ld h2{font-family:var(--disp);font-weight:400;letter-spacing:-.01em;margin:0}
-.lnav{display:flex;align-items:center;gap:16px;padding:16px 0}.lnav .b{margin-right:auto;font:400 20px var(--disp);background:none;border:0;display:flex;align-items:center;gap:8px;padding:0;color:inherit}
-.dot{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f6a6c8,#7a4fd0)}.lnav a,.lnav button.l{color:var(--ink);font-size:13px;background:none;border:0;text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
-.hero{background:linear-gradient(180deg,#9b99e6 0%,#c4a2de 34%,#f4b6c8 58%,var(--bg) 100%);text-align:center;padding-bottom:84px;position:relative;overflow:hidden}.hero .lnav a,.hero .lnav button{color:#1e1a2e}
-.hero .script{color:#fff;font-size:42px;margin-top:40px}.hero h1{font-size:clamp(44px,8vw,76px);line-height:1;color:#1b1630}.hero p{max-width:50ch;margin:20px auto 28px;color:#2a2440}
-.sp{position:absolute;color:#fff;opacity:.8;font-size:22px}.hero .small{display:block;margin-top:14px;font-size:12px;color:#3b3355}
-.ls{padding:72px 0;text-align:center}.ls h2{font-size:clamp(30px,5vw,44px);line-height:1.1;margin-bottom:14px}.ls p.lead{max-width:56ch;margin:0 auto 32px;color:var(--mut)}
-.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;text-align:left}.lc{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:18px}.lc b{display:block;margin-bottom:6px}.lc p{margin:0;color:var(--mut);font-size:13px}
-.sky{height:200px;background:radial-gradient(ellipse 30% 40% at 20% 85%,#fff,transparent),radial-gradient(ellipse 36% 45% at 60% 90%,#fff,transparent),radial-gradient(ellipse 25% 35% at 90% 80%,#fff,transparent),linear-gradient(180deg,var(--bg),#a9cdea 45%,#e7f0f8 80%,var(--bg))}
-.lad{list-style:none;margin:0 auto;padding:0;max-width:520px;text-align:left}.lad li{padding:12px 16px;background:var(--surf);border:1px solid var(--line);border-radius:12px;margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.lad a{color:var(--pri)}
-.dark{background:#1b1917;color:#f3ede3;padding:72px 0;text-align:center}.dark p{max-width:56ch;margin:0 auto 26px;color:#c9c0b3}.dark .btn:not(.pri){background:transparent;color:#f3ede3;border-color:#5a534a;border-radius:99px}
-footer.lf{padding:48px 0;font-size:13px;color:var(--mut)}footer.lf .lw{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:24px}footer.lf b{display:block;color:var(--ink);margin-bottom:6px}footer.lf a,footer.lf button{display:block;color:var(--mut);background:none;border:0;padding:4px 0;text-align:left;min-height:0;font:inherit;text-decoration:none;cursor:pointer}
-@media(max-width:700px){.cards3{grid-template-columns:1fr}footer.lf .lw{grid-template-columns:1fr 1fr}.lnav .hide{display:none}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--navy);color:#fff;padding:10px 16px;border-radius:var(--r);opacity:0;pointer-events:none;transition:.2s;z-index:50;max-width:90vw}#toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===== landing (jasper.ai direction) ===== */
+#landing{display:none}body.landing #landing{display:block}
+body.landing .app,body.landing .mtop,body.landing .tabs{display:none!important}
+.lw{max-width:1180px;margin:0 auto;padding:0 28px}
+.ld h1,.ld h2{font-family:var(--disp);font-weight:400;letter-spacing:-.02em;color:var(--navy)}
+.hero{background:var(--gray)}
+.lnav{display:flex;align-items:center;gap:28px;padding:18px 0}
+.lnav .links{display:flex;gap:26px;margin-left:14px}
+.lnav .links a{color:var(--navy);text-decoration:none;font-size:14px;font-weight:500;min-height:44px;display:inline-flex;align-items:center}.lnav .links a:hover{color:var(--coral)}
+.lnav .row{margin-left:auto;display:flex;gap:10px}
+.hero-in{text-align:center;padding:24px 0 60px}
+.ann{display:inline-flex;align-items:center;gap:8px;background:#fff;border-radius:4px;padding:5px 12px;font-size:12px;color:var(--navy);text-decoration:none;border:1px solid #e3e3ea;cursor:pointer}
+.ann .tag{background:var(--pgreenL);border-radius:3px;padding:1px 6px;font-weight:700}
+.hero h1{font-size:clamp(42px,6vw,76px);line-height:1;max-width:20ch;margin:26px auto 0}
+.hero p.lede{max-width:50ch;margin:24px auto 30px;font-size:16px;color:var(--mut)}
+.hero .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.hero .btn{min-height:48px;padding:0 24px}
+.band{position:relative;height:clamp(420px,44vw,540px);overflow:hidden;background:var(--gray)}
+.pgrid{position:absolute;inset:0;background-color:var(--pink);background-image:linear-gradient(var(--pgl) 2px,transparent 2px),linear-gradient(90deg,var(--pgl) 2px,transparent 2px);background-size:46px 32px;background-position:0 0;clip-path:polygon(0 52%,15% 52%,15% 36%,33% 36%,33% 14%,67% 14%,67% 36%,85% 36%,85% 52%,100% 52%,100% 100%,0 100%)}
+.bx{position:absolute;background:#fff;border:1.5px solid var(--navy);border-radius:3px}
+.hcard{left:50%;top:9%;transform:translateX(-50%);width:min(380px,88%);padding:20px;box-shadow:10px 10px 0 #68b4f7;text-align:left}
+.hcard .st{font-size:12px;font-weight:600;color:var(--wait);display:flex;align-items:center;gap:7px;margin-bottom:12px}.hcard .st i{width:8px;height:8px;border-radius:50%;background:#e59a00}
+.hcard .tt{font:400 26px/1.1 var(--disp);color:var(--navy);margin-bottom:4px}.hcard .ss{font-size:13px;color:var(--mut);margin-bottom:14px}
+.hcard .ldr{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:16px 0 0;font-size:10.5px;color:var(--mut);line-height:1.25}
+.hcard .ldr span{position:relative;padding-top:15px}.hcard .ldr span::before{content:"";position:absolute;left:0;top:0;width:11px;height:11px;border-radius:50%;border:2px solid var(--line);background:#fff}
+.hcard .ldr span.d::before{background:var(--navy);border-color:var(--navy)}.hcard .ldr span.o::before{border-color:var(--coral)}
+.call{left:6%;top:38%;width:clamp(210px,23vw,300px);padding:14px 16px 14px 42px;font:400 22px/1.15 var(--disp);color:var(--navy);border:0;box-shadow:0 10px 28px rgba(12,12,61,.14)}
+.call .n{position:absolute;left:13px;top:16px;width:18px;height:18px;border-radius:50%;background:var(--coral);color:#fff;font:700 10px/18px var(--ui);text-align:center}
+.call .cur{position:absolute;left:-12px;top:-14px}
+.mini{right:6%;top:38%;width:clamp(200px,21vw,270px);padding:14px;box-shadow:8px 8px 0 var(--coral)}
+.mini b{display:block;font:400 20px/1.1 var(--disp);color:var(--navy);margin-bottom:10px}
+.ln{display:block;height:7px;border-radius:2px;background:var(--pink);margin:8px 0}.w90{width:90%}.w80{width:80%}.w70{width:70%}.w50{width:50%}.w60{width:60%}
+.mini .go{display:inline-block;margin-top:8px;background:var(--coral);color:#fff;font-size:11px;font-weight:700;padding:5px 10px;border-radius:3px}
+.dia{position:absolute;right:23%;top:18%;width:150px;height:150px;background:#fff6bf;transform:rotate(38deg);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.bar2{position:absolute;left:19%;top:60%;width:150px;height:30px;background:var(--coral)}
+.tg{position:absolute;display:inline-flex;align-items:center;gap:6px;font:600 12px var(--ui);padding:3px 10px 3px 8px;border:1.5px solid var(--navy);border-radius:3px;color:var(--navy);white-space:nowrap}
+.tg-y{background:#f5ef3a}.tg-b{background:#4aa8ff}.tg-g{background:#7dff5c}
+.trustrow{padding:68px 0 76px;text-align:center}
+.trustrow h2{font-size:24px}.trustrow p.s{font-size:13px;color:var(--mut);margin-top:6px}
+.wm{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:18px 38px;margin-top:34px;color:var(--navy)}
+.wm span{white-space:nowrap}.wm .a{font:700 21px var(--ui);letter-spacing:-.02em}.wm .b{font:italic 400 24px var(--disp)}.wm .c{font:500 17px var(--mono)}.wm .d{font:800 18px var(--ui);letter-spacing:.06em}.wm .e{font:500 24px var(--disp)}.wm .f{font:600 18px var(--ui)}
+.plat{padding:56px 0 90px;text-align:center}
+.mono-tag{display:inline-block;font:11px var(--mono);background:#f7efe6;border:1px solid #eadfd2;border-radius:3px;padding:3px 9px;color:#5a4a3a}
+.plat h2{font-size:clamp(36px,4.8vw,60px);line-height:1.02;max-width:18ch;margin:20px auto 18px}
+.plat p.sub{max-width:62ch;margin:0 auto 28px;color:var(--mut)}
+.cards4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:58px;text-align:left}
+.pc{--c:var(--pgreen);--l:var(--pgreenL);display:flex;flex-direction:column;min-height:340px;padding:20px;border:0;border-radius:2px;color:var(--navy);text-align:left;cursor:pointer;background-color:var(--c);background-image:linear-gradient(var(--l) 1px,transparent 1px),linear-gradient(90deg,var(--l) 1px,transparent 1px);background-size:22px 22px;transition:transform .2s}
+.pc:hover{transform:translateY(-4px)}.pc.s{--c:var(--psalmon);--l:var(--psalmonL)}.pc.b{--c:var(--pblue);--l:var(--pblueL)}.pc.y{--c:var(--pyellow);--l:var(--pyellowL)}
+.pc .t{font:400 34px/1 var(--disp);letter-spacing:-.015em}.pc .ill{margin:auto;width:92%;height:auto}
+.pc .cap{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;font-size:14px;line-height:1.35}.pc .cap i{font-style:normal;font-size:22px;line-height:1}
+.why{padding:70px 0 100px;background:#fff}
+.whygrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:start}
+.why h2{font-size:clamp(36px,4.2vw,54px);line-height:1.02;max-width:12ch}
+.why .lead{margin:22px 0 40px;max-width:38ch;color:var(--mut);font-size:14px}
+.acc details{border-top:1.5px solid var(--navy)}.acc details:last-child{border-bottom:1.5px solid var(--navy)}
+.acc summary{list-style:none;font:400 23px/1.2 var(--disp);color:var(--navy);padding:16px 14px;min-height:62px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.acc summary::-webkit-details-marker{display:none}.acc summary::after{content:"+";font:400 24px var(--ui);color:var(--coral)}.acc details[open] summary::after{content:"–"}
+.acc details[open]{background:#fff0ee}.acc details[open] summary{padding-bottom:6px;min-height:0}
+.acc .body{padding:0 14px 20px;font-size:14px;color:var(--mut);max-width:48ch}.acc .body button{background:none;border:0;padding:0;min-height:0;color:var(--coralH);font-weight:600;margin-top:10px;display:block}
+.board{position:relative;min-height:540px;background-color:#fff;background-image:linear-gradient(#f7c9bf 1px,transparent 1px),linear-gradient(90deg,#f7c9bf 1px,transparent 1px);background-size:68px 54px;border:1px solid #f7c9bf}
+.board .bx{padding:14px 16px}.board .bt{font:600 13px var(--ui);margin-bottom:10px;display:flex;align-items:center;gap:8px;color:var(--navy)}.board .bt i{width:10px;height:10px;border:1.5px solid var(--navy);background:#fff}
+.b1{left:6%;top:6%;width:52%;box-shadow:7px 7px 0 #68b4f7}
+.b2{right:4%;top:36%;width:46%;box-shadow:7px 7px 0 #f08cc0}.b2 .bar{margin:6px 0 8px}.b2 small{font-size:12px;color:var(--mut)}
+.b3{left:9%;top:62%;width:58%;border-color:var(--coral);box-shadow:7px 7px 0 var(--coral)}
+.b3 .r{display:flex;justify-content:space-between;align-items:center;border:1.5px solid #f4b3a8;border-radius:3px;padding:7px 10px;margin-top:8px;font-size:12.5px;color:#7a2e1c;background:#fff8f6}
+.dk-sec{background:var(--navy);color:#f3f4f8;padding:84px 0;text-align:center}
+.dk-sec .mono-tag{background:transparent;border-color:#3b3b78;color:#c9c9f0}
+.dk-sec h2{font-size:clamp(34px,4.4vw,54px);line-height:1.04;margin:18px auto 16px;color:#fff;max-width:18ch}
+.dk-sec p{max-width:56ch;margin:0 auto 28px;color:#c3c3e6}
+.dk-sec .btn{min-height:48px;padding:0 24px}.dk-sec .btn:not(.pri){background:transparent;color:#fff;border-color:#4a4a8a}.dk-sec .btn:not(.pri):hover{background:#fff;color:var(--navy)}
+footer.lf{padding:52px 0;font-size:13px;color:var(--mut);background:var(--gray)}
+footer.lf .lw{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:24px}
+footer.lf .brand{display:flex}footer.lf .brand b{display:inline;margin:0;color:var(--coral)}
+footer.lf b{display:block;color:var(--navy);margin-bottom:6px;font-weight:600}
+footer.lf a,footer.lf button.fl{display:block;color:var(--mut);background:none;border:0;padding:4px 0;text-align:left;min-height:0;font:inherit;text-decoration:none;cursor:pointer}
+footer.lf a:hover,footer.lf button.fl:hover{color:var(--coral)}
+
+/* responsive */
+@media(max-width:1180px){.app{grid-template-columns:240px minmax(0,1fr)}.chatp{display:none}body[data-view=chat] .chatp{display:flex;grid-column:2}body[data-view=chat] .stage{display:none}.tabs{display:flex}.stage{padding-bottom:88px}}
+@media(min-width:801px) and (max-width:1180px){.tabs{left:240px}}
+@media(min-width:801px){#newM{display:none}}
+@media(max-width:900px){.cards4{grid-template-columns:1fr 1fr}.whygrid{grid-template-columns:1fr;gap:40px}}
+@media(max-width:800px){
+ #menu{display:inline-flex;align-items:center}
+ .mtop{padding:8px 12px;gap:6px}.mtop .btn.sm{padding:0 10px}.mtop .brand span{display:none}
+ .app{display:block;overflow:hidden}
+ .side{position:fixed;inset:0 20% 0 0;z-index:20;transform:translateX(-102%);transition:transform .2s;box-shadow:4px 0 24px rgba(0,0,0,.2)}
+ body.drawer .side{transform:none}
+ .stage,.chatp{height:100%}.stage{display:block}
+ body[data-view=chat] .stage,body[data-view=letter] #secNext{display:none}body[data-view=chat] .chatp{display:flex}
+ body[data-view=case] #secLetter{display:none}
+ .track{font-size:12px}
+ .tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
+ .tabs button{flex:1;border:0;background:none;font-weight:600;color:var(--mut);min-height:52px}.tabs button[aria-current=true]{color:var(--coralH);box-shadow:inset 0 3px var(--coral)}
+ .trust{grid-template-columns:1fr}.g2{grid-template-columns:1fr}
+ .lnav .links{display:none}
+}
+@media(max-width:760px){
+ .call,.mini,.dia,.bar2,.band .tg{display:none}.band{height:380px}.hcard{top:12%}
+ .board{min-height:0;padding:14px;display:grid;gap:18px}.board .bx{position:static;width:auto}.board .tg{display:none}
+ .lnav .row .btn:not(.pri){display:none}
+ footer.lf .lw{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){.cards4{grid-template-columns:1fr}.pc{min-height:300px}.lw{padding:0 18px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media print{body *{visibility:hidden}.sheet,.sheet *{visibility:visible}.sheet{position:absolute;left:0;top:0;border:0;box-shadow:none;width:100%}}
-</style></head><body data-view="case" class="nocase landing">
+</style></head>
+<body data-view="case" class="nocase landing">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="logo-mark" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#dc3519"/><path d="M6.5 25.5H12v-6h6v-6h5.5V9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 12.5L23.5 8.5l4 4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol></svg>
 <div id="landing" class="ld">
-<section class="hero"><div class="lw"><nav class="lnav" aria-label="Main"><button class="b" data-go="home"><span class="dot" aria-hidden="true"></span>Escalation Agent</button><button class="l" data-go="app">My complaints</button></nav>
-<span class="sp" style="left:12%;top:120px" aria-hidden="true">✦</span><span class="sp" style="right:14%;top:90px" aria-hidden="true">✦</span><span class="sp" style="right:22%;top:300px" aria-hidden="true">✦</span>
-<span class="script">Consumer complaints, handled</span><h1>Get your refund,<br>one step at a time</h1>
-<p>Tell us what went wrong. We write the complaint letter, track how long the company has to reply, and show you when to escalate.</p>
-<button class="btn pri" data-go="new" style="min-height:48px;padding:0 28px">Start a complaint</button><span class="small">You review and send every letter yourself.</span></div></section>
-<section class="ls"><div class="lw"><span class="script">How it works</span><h2>It's not a chatbot.<br>It's your case file.</h2><p class="lead">Every complaint becomes a case with a letter, a deadline and a clear next step. It's saved, so you can come back to it.</p>
-<div class="cards3"><div class="lc"><b>1. Tell us</b><p>Describe the problem and add the order details if you have them.</p></div><div class="lc"><b>2. Review and send</b><p>Edit the letter, then send it by email or WhatsApp yourself.</p></div><div class="lc"><b>3. Track and escalate</b><p>We count the reply window and tell you when to move up a step.</p></div></div></div></section>
-<div class="sky" aria-hidden="true"></div>
-<section class="ls"><div class="lw"><span class="script">You're in control</span><h2>We write. You send.</h2><p class="lead">Nothing goes out unless you send it. We never contact the company or file a case for you.</p>
-<ol class="lad"><li><span>1. Ask the seller</span></li><li><span>2. Company's grievance officer</span></li><li><span>3. National Consumer Helpline</span><a href="https://consumerhelpline.gov.in" target="_blank" rel="noopener">Official site</a></li><li><span>4. Consumer Commission</span><a href="https://e-jagriti.gov.in" target="_blank" rel="noopener">Official site</a></li></ol>
-<p class="note" style="margin-top:12px">Reply windows are typical timeframes. Check each official site before relying on a deadline.</p></div></section>
-<section class="dark"><div class="lw"><span class="script" style="color:#f4b6c8">Before you start</span><h2 style="font-size:clamp(30px,5vw,44px);margin-bottom:14px">Keep it simple, keep it safe</h2>
-<p>We save your name, item, seller, order ID, amount, letters and case history so you can return to your case. Never enter card numbers, passwords or OTPs. This is not legal advice.</p>
-<button class="btn pri" data-go="new" style="min-height:48px;padding:0 28px">Start a complaint</button> <button class="btn" id="trustBtn2">How your data is handled</button></div></section>
-<footer class="lf"><div class="lw"><div><b style="font:400 20px var(--disp)">Escalation Agent</b>Drafts for you to send. Not legal advice.</div>
-<div><b>Product</b><button data-go="new">Start a complaint</button><button data-go="app">My complaints</button></div>
-<div><b>Official sites</b><a href="https://consumerhelpline.gov.in" target="_blank" rel="noopener">Consumer Helpline</a><a href="https://e-jagriti.gov.in" target="_blank" rel="noopener">e-Jagriti</a></div>
-<div><b>Trust</b><button id="trustBtn3">How this works</button></div></div></footer></div>
-<header class="mtop"><button class="btn sm" id="menu" aria-label="Open cases">Cases</button><b data-go="home">Escalation Agent</b><button class="btn sm" id="newM">New</button></header>
+<section class="hero">
+ <div class="lw">
+  <nav class="lnav" aria-label="Main">
+   <button class="brand" data-go="home" aria-label="EscalAI home"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><use href="#logo-mark"/></svg><span>Escal<b>AI</b></span></button>
+   <div class="links"><a href="#how">How it works</a><a href="#channels">Official channels</a><a href="#why">Why EscalAI</a></div>
+   <div class="row"><button class="btn" data-go="app">My complaints</button><button class="btn pri" data-go="new">Start a complaint</button></div>
+  </nav>
+  <div class="hero-in">
+   <a class="ann" href="#app" data-go="app"><span class="tag">New!</span> Reopen any stopped case and pick up where you left off <span aria-hidden="true">→</span></a>
+   <h1>Consumer rights, actually followed through</h1>
+   <p class="lede">EscalAI writes the complaint letter, counts down the reply window, and tells you exactly when to move to the next official step: seller, grievance officer, helpline, or commission.</p>
+   <div class="row"><button class="btn" data-go="app">My complaints</button><button class="btn pri" data-go="new">Start a complaint</button></div>
+  </div>
+ </div>
+ <div class="band" aria-hidden="true">
+  <div class="pgrid"></div>
+  <div class="dia"></div><div class="bar2"></div>
+  <div class="bx call"><svg class="cur" width="16" height="16" viewBox="0 0 12 12"><path d="M1 1l9 3.5-3.8 1.4L4.7 10z" fill="#0c0c3d"/></svg><i class="n">1</i>From a broken product to a filed case, one step at a time.</div>
+  <div class="bx hcard">
+   <div class="st"><i></i>Waiting for reply</div>
+   <div class="tt">Broken earbuds</div>
+   <div class="ss">Letter sent to seller support on day 0</div>
+   <div class="bar"><i style="width:57%"></i></div>
+   <div class="ss" style="margin:6px 0 0;font-size:12px">4 of 7 days used · reply due Thursday</div>
+   <div class="ldr"><span class="o">Seller</span><span>Grievance officer</span><span>Helpline</span><span>Commission</span></div>
+  </div>
+  <div class="bx mini"><b>Letter ready</b><span class="ln w90"></span><span class="ln w80"></span><span class="ln w60"></span><span class="go">Copy letter</span></div>
+  <span class="tg tg-y" style="left:6%;top:31%">Seller support</span>
+  <span class="tg tg-g" style="right:7%;top:31%">You send it</span>
+ </div>
+</section>
+
+<section class="trustrow" id="channels"><div class="lw">
+ <h2>Built around the real consumer channels</h2>
+ <p class="s">EscalAI points you to the official route, in order</p>
+ <div class="wm"><span class="a">Consumer Helpline</span><span class="c">e-Jagriti</span><span class="b">District Commission</span><span class="e">State Commission</span><span class="d">NATIONAL COMMISSION</span><span class="f">E-Commerce Rules, 2020</span></div>
+</div></section>
+
+<section class="plat" id="how"><div class="lw">
+ <span class="mono-tag">The EscalAI platform</span>
+ <h2>The escalation ladder that follows through</h2>
+ <p class="sub">EscalAI is an always-on case manager for consumer complaints. It drafts each letter, tracks the reply window and shows the next real step, while you stay the one who hits send.</p>
+ <button class="btn dk" data-go="new" style="min-height:48px;padding:0 24px">Start a complaint</button>
+ <div class="cards4">
+  <button class="pc" data-go="new"><span class="t">Draft</span>
+   <svg class="ill" viewBox="0 0 200 130" fill="none" stroke="#0d4d2b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="26" y="22" width="62" height="78" fill="#eafbe3"/><path d="M38 40h38M38 52h38M38 64h24"/><rect x="76" y="38" width="66" height="72" fill="#fff"/><path d="M88 56h42M88 68h42M88 80h28"/><path d="M158 26l5 10 11 1-8 8 2 11-10-5-10 5 2-11-8-8 11-1z" fill="#fff"/><path d="M150 92l16 7-7 3 3 8z" fill="#17a34a"/></svg>
+   <span class="cap"><span>Plan the letter from what you tell us, ready to edit.</span><i>→</i></span></button>
+  <button class="pc s" data-go="app"><span class="t">Track</span>
+   <svg class="ill" viewBox="0 0 200 130" fill="none" stroke="#8a2314" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="22" y="28" width="66" height="64" fill="#fff"/><path d="M22 46h66M40 20v14M70 20v14"/><path d="M36 60h10M54 60h10M72 60h8M36 74h10M54 74h10"/><circle cx="140" cy="62" r="32" fill="#fff"/><path d="M140 42v20l13 8"/><path d="M92 62h12" /><path d="M158 100l14 6-6 3 3 8z" fill="#dc3519"/></svg>
+   <span class="cap"><span>See how many days a company has left to reply.</span><i>→</i></span></button>
+  <button class="pc b" data-go="app"><span class="t">Escalate</span>
+   <svg class="ill" viewBox="0 0 200 130" fill="none" stroke="#1a2a8c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="22" y="84" width="34" height="26" fill="#fff"/><rect x="56" y="64" width="34" height="46" fill="#fff"/><rect x="90" y="44" width="34" height="66" fill="#fff"/><rect x="124" y="24" width="34" height="86" fill="#fff"/><path d="M141 8l11 11h-22z" fill="#1a2a8c"/><path d="M174 40l8 8-8 8-8-8z" fill="#bcdcf6"/></svg>
+   <span class="cap"><span>When a window closes, move to the next official step.</span><i>→</i></span></button>
+  <button class="pc y" id="trustCard" type="button"><span class="t">Trust</span>
+   <svg class="ill" viewBox="0 0 200 130" fill="none" stroke="#5c5a0b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M100 14l38 13v28c0 24-17 41-38 49-21-8-38-25-38-49V27z" fill="#fff"/><path d="M82 62l13 13 24-26"/><rect x="26" y="104" width="52" height="16" rx="8" fill="#fff"/><circle cx="36" cy="112" r="5" fill="#5c5a0b"/><path d="M150 104h22" /></svg>
+   <span class="cap"><span>You review and send every letter. Nothing goes out without you.</span><i>→</i></span></button>
+ </div>
+</div></section>
+
+<section class="why" id="why"><div class="lw"><div class="whygrid">
+ <div>
+  <h2>Why people stick with EscalAI</h2>
+  <p class="lead">Give yourself the clarity to follow a complaint through, one clear step at a time.</p>
+  <div class="acc">
+   <details name="why" open><summary>A letter in plain words, ready to send.</summary><div class="body">Tell us what happened once. EscalAI writes the complaint, and every later escalation, from your details. You edit it, then send it yourself by email or WhatsApp.<button data-go="new">Start a complaint →</button></div></details>
+   <details name="why"><summary>A countdown that never forgets.</summary><div class="body">Each stage has a real reply window. EscalAI counts the days down and tells you exactly when it is time to move on.</div></details>
+   <details name="why"><summary>The next real step, one tap away.</summary><div class="body">Seller, grievance officer, National Consumer Helpline, then the Consumer Commission, with a link to the official site at every stage.</div></details>
+   <details name="why"><summary>Nothing sent without you.</summary><div class="body">EscalAI only drafts and tracks. It never contacts a company or files a case on your behalf, and it is not legal advice.<button id="trustBtn2" type="button">How your data is handled →</button></div></details>
+  </div>
+ </div>
+ <div class="board" aria-hidden="true">
+  <div class="bx b1"><div class="bt"><i></i>Complaint letter</div><span class="ln w90"></span><span class="ln w70"></span><span class="ln w80"></span><span class="ln w50"></span></div>
+  <span class="tg tg-y" style="left:46%;top:3%"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M1 1l9 3.5-3.8 1.4L4.7 10z" fill="#0c0c3d"/></svg>Seller</span>
+  <div class="bx b2"><div class="bt"><i></i>Reply window</div><div class="bar"><i style="width:57%"></i></div><small>4 of 7 days used</small></div>
+  <span class="tg tg-b" style="right:30%;top:31%"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M1 1l9 3.5-3.8 1.4L4.7 10z" fill="#0c0c3d"/></svg>Grievance officer</span>
+  <div class="bx b3"><div class="bt"><i></i>Your next step</div><div class="r"><span>Send to the grievance officer</span><span>→</span></div><div class="r"><span>Open the helpline site</span><span>→</span></div><div class="r"><span>Prepare my case file</span><span>→</span></div></div>
+  <span class="tg tg-g" style="left:58%;top:56%"><svg width="11" height="11" viewBox="0 0 12 12"><path d="M1 1l9 3.5-3.8 1.4L4.7 10z" fill="#0c0c3d"/></svg>You</span>
+ </div>
+</div></div></section>
+
+<section class="dk-sec"><div class="lw">
+ <span class="mono-tag">Before you start</span>
+ <h2>Keep it simple, keep it safe</h2>
+ <p>We save your name, item, seller, order ID, amount, letters and case history so you can return to your case. Never enter card numbers, passwords or OTPs. This is not legal advice.</p>
+ <button class="btn pri" data-go="new">Start a complaint</button> <button class="btn" id="trustBtn4" type="button">How your data is handled</button>
+</div></section>
+
+<footer class="lf"><div class="lw">
+ <div><button class="brand" data-go="home" aria-label="EscalAI home" style="margin:0 0 8px"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><use href="#logo-mark"/></svg><span>Escal<b>AI</b></span></button>Drafts for you to send. Not legal advice.</div>
+ <div><b>Product</b><button class="fl" data-go="new">Start a complaint</button><button class="fl" data-go="app">My complaints</button></div>
+ <div><b>Official sites</b><a href="https://consumerhelpline.gov.in" target="_blank" rel="noopener">Consumer Helpline</a><a href="https://e-jagriti.gov.in" target="_blank" rel="noopener">e-Jagriti</a></div>
+ <div><b>Trust</b><button class="fl" id="trustBtn3" type="button">How this works</button></div>
+</div></footer>
+</div>
+<header class="mtop"><button class="btn sm home" data-go="home" aria-label="Back to home">← Home</button><button class="brand" data-go="home" aria-label="EscalAI home"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><use href="#logo-mark"/></svg><span>Escal<b>AI</b></span></button><span class="sp"></span><button class="btn sm" id="menu" aria-label="Open complaints">Complaints</button><button class="btn sm pri" id="newM">New complaint</button></header>
 <div class="app">
 <aside class="side" aria-label="Your complaints">
- <button class="brand" data-go="home">Escalation Agent</button>
  <button class="btn pri" id="newCase">New complaint</button>
  <h2>Your complaints</h2><ul id="caseList"></ul>
  <div class="foot"><button class="btn sm" id="trustBtn">How this works and your data</button><p style="margin-top:8px">Drafts only. We never send anything for you. Not legal advice.</p><div id="demo"><p id="mcp">Server: checking</p><button class="btn sm" data-q="skip ahead 8 days">Skip 8 days</button></div></div>
@@ -166,6 +325,7 @@ footer.lf{padding:48px 0;font-size:13px;color:var(--mut)}footer.lf .lw{display:g
 
 <main class="stage" id="stage">
  <div id="start" class="start">
+  <button class="btn sm back" id="backBtn" type="button">← Back to home</button>
   <h1>Get your refund or replacement</h1>
   <p class="lede">Describe what went wrong. We write the complaint letter, track how long the company has to reply, and tell you when to escalate.</p>
   <div class="form">
@@ -174,7 +334,7 @@ footer.lf{padding:48px 0;font-size:13px;color:var(--mut)}footer.lf .lw{display:g
     <div class="g2"><label>Seller or platform<input type="text" id="pf" placeholder="Amazon"></label><label>Order ID<input type="text" id="oid" placeholder="OD-12345"></label>
     <label>Amount paid (Rs)<input type="text" id="amt" inputmode="numeric" placeholder="2499"></label>
     <label>What you want<select id="want"><option value="">Not sure</option><option>refund</option><option>replacement</option><option>repair</option></select></label></div></details>
-   <button class="btn pri" id="begin">Review and write my letter</button>
+   <button class="btn pri" id="begin" style="min-height:48px">Review and write my letter</button>
   </div>
   <div class="ex"><span class="mut">Try an example:</span><button data-ex="0">Broken earbuds</button><button data-ex="1">Refund never came</button></div>
   <div class="trust"><p><b>We write drafts</b>Letters for you to review, edit and send yourself.</p><p><b>You stay in control</b>We never contact the company or file anything for you.</p><p><b>Not legal advice</b>We point you to official consumer channels.</p></div>
@@ -212,7 +372,7 @@ footer.lf{padding:48px 0;font-size:13px;color:var(--mut)}footer.lf .lw{display:g
 
 <script>
 const $=id=>document.getElementById(id),log=$("log"),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let replied=false,lastR=null,awaitName=true,userName="",caseId=null,lastStatus=null,done=false,voice=false,endState=null,info={},caseStart=0,winStart=0,winTotal=0,prevStatus=null,lastStage=null,lastText="",lastForce=false;
+let prevMeta=null,replied=false,lastR=null,awaitName=true,userName="",caseId=null,lastStatus=null,done=false,voice=false,endState=null,info={},caseStart=0,winStart=0,winTotal=0,prevStatus=null,lastStage=null,lastText="",lastForce=false;
 const STEPS=[["seller","Seller",""],["grievance","Grievance officer",""],["helpline","National Consumer Helpline","https://consumerhelpline.gov.in"],["commission","Consumer Commission","https://e-jagriti.gov.in"]];
 const LABEL={collecting:["Getting details",""],drafting:["Writing letter",""],draft_ready:["Letter ready",""],waiting:["Waiting for reply","wait"],escalating:["Escalating",""],gate:["Your decision",""],ready_to_file:["Ready to file",""],resolved:["Resolved","ok"],closed:["Stopped","mut"]};
 const CHIPS=[["I sent it","I sent it",["draft_ready"]],["They replied","they replied",["waiting"]],["File it","file it",["gate"]],["It's resolved","it is resolved",["draft_ready","waiting","gate"]],["Reopen","reopen",["closed"]],["Stop case","stop",["draft_ready","waiting","gate"],"stop"]];
@@ -308,9 +468,12 @@ async function switchCase(m){
 document.addEventListener("click",e=>{const b=e.target.closest("[data-case]");if(b)switchCase(JSON.parse(b.dataset.case))});
 function newCase(){
  if(window.speechSynthesis)speechSynthesis.cancel();
+ if(caseId)prevMeta={case_id:caseId,product:info.product,platform:info.platform,order_id:info.order_id,amount:info.amount,name:userName};
  caseId=null;done=false;lastStatus=null;endState=null;info={};prevStatus=null;lastStage=null;awaitName=true;userName="";
  document.body.classList.add("nocase");$("case").hidden=true;$("start").hidden=false;$("busy").hidden=true;$("lDoc").hidden=true;$("lEmpty").hidden=false;$("prob").value="";
- log.innerHTML="";vb("");add("Describe the problem on the left, or type it here. I'll write your letter.","bot");renderChips();loadCases();view("case");$("prob").focus()}
+ log.innerHTML="";vb("");add("Describe the problem on the left, or type it here. I'll write your letter.","bot");renderChips();loadCases();view("case");setBack();$("prob").focus()}
+function setBack(){$("backBtn").textContent=prevMeta?"← Back to "+(prevMeta.product||"your case"):"← Back to home"}
+$("backBtn").onclick=()=>{if(prevMeta)switchCase(prevMeta);else nav("home")};
 $("newCase").onclick=$("newM").onclick=newCase;
 const SHOW=/\b(letter|draft|show)\b/i,STALE_CMD=/\b(sent|mailed|emailed|submitted|resolved|refund(ed)?|fixed|file|stop|skip|advance|\d+\s*days?|replied|responded)\b/i,REOPEN=/\b(reopen|re-?open|look into it again|same issue again|continue (this|it))\b/i;
 async function handle(text){
@@ -361,8 +524,15 @@ else{const r=new SR();r.lang="en-IN";r.interimResults=true;let on=false,handled=
  r.onstart=()=>{handled=false;vb("Listening…")};
  r.onend=r.onerror=()=>{on=false;$("mic").classList.remove("on");if($("vb").textContent==="Listening…")vb("")};
  $("mic").onclick=()=>{if(on)return r.stop();on=true;$("mic").classList.add("on");r.start()}}
-function enterApp(){document.body.classList.remove("landing");scrollTo(0,0)}
-document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(!g)return;const k=g.dataset.go;if(k==="home"){document.body.classList.add("landing");scrollTo(0,0);return}enterApp();if(k==="new")newCase()});
-$("trustBtn2").onclick=$("trustBtn3").onclick=$("trustBtn").onclick;
+/* navigation: landing <-> app, with working browser back/forward */
+function setLanding(on){if(on!==document.body.classList.contains("landing")){document.body.classList.toggle("landing",on);scrollTo(0,0)}}
+function nav(k){
+ if(k==="home"){if(location.hash!=="#home")history.pushState(null,"","#home");setLanding(true);return}
+ if(location.hash!=="#app")history.pushState(null,"","#app");
+ setLanding(false);if(k==="new")newCase()}
+document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(!g)return;e.preventDefault();nav(g.dataset.go)});
+addEventListener("popstate",()=>setLanding(location.hash!=="#app"));
+$("trustBtn2").onclick=$("trustBtn3").onclick=$("trustBtn4").onclick=$("trustCard").onclick=$("trustBtn").onclick;
 view("case");newCase();
+if(location.hash==="#app"){setLanding(false)}else{history.replaceState(null,"","#home");setLanding(true)}
 </script></body></html>
