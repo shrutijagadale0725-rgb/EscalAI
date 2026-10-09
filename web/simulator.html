@@ -171,7 +171,12 @@ body.landing .app,body.landing .mtop,body.landing .tabs{display:none!important}
 .trustrow{padding:68px 0 76px;text-align:center}
 .trustrow h2{font-size:24px}.trustrow p.s{font-size:13px;color:var(--mut);margin-top:6px}
 .wm{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:18px 38px;margin-top:34px;color:var(--navy)}
-.wm span{white-space:nowrap}.wm .a{font:700 21px var(--ui);letter-spacing:-.02em}.wm .b{font:italic 400 24px var(--disp)}.wm .c{font:500 17px var(--mono)}.wm .d{font:800 18px var(--ui);letter-spacing:.06em}.wm .e{font:500 24px var(--disp)}.wm .f{font:600 18px var(--ui)}
+.wm span,.wm a{white-space:nowrap}
+.wm a{color:inherit;text-decoration:none;transition:color .15s}
+.wm a:hover{color:var(--coral)}.wm .a{font:700 21px var(--ui);letter-spacing:-.02em}.wm .b{font:italic 400 24px var(--disp)}.wm .c{font:500 17px var(--mono)}.wm .d{font:800 18px var(--ui);letter-spacing:.06em}.wm .e{font:italic 400 24px var(--disp)}.wm .f{font:600 18px var(--ui)}
+.wm a[data-tip]{position:relative}
+.wm a[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 12px);transform:translate(-50%,6px);width:max-content;max-width:240px;white-space:normal;text-align:left;background:var(--navy);color:#fff;font:400 13px/1.45 var(--ui);letter-spacing:0;text-transform:none;text-decoration:none;padding:9px 12px;border-radius:4px;box-shadow:4px 4px 0 var(--pblueL);opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:5}
+.wm a[data-tip]:hover::after,.wm a[data-tip]:focus-visible::after{opacity:1;transform:translate(-50%,0)}
 .plat{padding:56px 0 90px;text-align:center}
 .mono-tag{display:inline-block;font:11px var(--mono);background:#f7efe6;border:1px solid #eadfd2;border-radius:3px;padding:3px 9px;color:#5a4a3a}
 .plat h2{font-size:clamp(36px,4.8vw,60px);line-height:1.02;max-width:18ch;margin:20px auto 18px}
@@ -296,7 +301,14 @@ body.nocase .tabs{display:none!important}
 <section class="trustrow" id="channels"><div class="lw">
  <h2>Built around the real consumer channels</h2>
  <p class="s">EscalAI points you to the official route, in order</p>
- <div class="wm"><span class="a">Consumer Helpline</span><span class="c">e-Jagriti</span><span class="b">District Commission</span><span class="e">State Commission</span><span class="d">NATIONAL COMMISSION</span><span class="f">E-Commerce Rules, 2020</span></div>
+<div class="wm">
+  <a class="a" href="https://consumerhelpline.gov.in/public/" target="_blank" rel="noopener" data-tip="Free government helpline to raise your complaint with the company, before you go to a Commission.">Consumer Helpline</a>
+  <a class="c" href="https://e-jagriti.gov.in/" target="_blank" rel="noopener" data-tip="The official portal to file a formal case online at the District, State or National Commission.">e-Jagriti</a>
+  <a class="b" href="https://e-jagriti.gov.in/" target="_blank" rel="noopener" data-tip="For purchases up to Rs 50 lakh. Most everyday complaints go here.">District Commission</a>
+  <a class="e" href="https://e-jagriti.gov.in/" target="_blank" rel="noopener" data-tip="For purchases between Rs 50 lakh and Rs 2 crore, and for appeals against District orders.">State Commission</a>
+  <a class="d" href="https://e-jagriti.gov.in/" target="_blank" rel="noopener" data-tip="For purchases above Rs 2 crore, and for appeals against State orders.">NATIONAL COMMISSION</a>
+ <span class="f">E-Commerce Rules, 2020</span>
+</div>
 </div></section>
 
 <section class="plat" id="how"><div class="lw">
