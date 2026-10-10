@@ -8,7 +8,6 @@ def _facts(s):
         parts.append(f"purchased on {s['purchase_date']}")
     return ", ".join(parts)
 
-
 def _history(s):
     return [t for t in s.get("timeline", []) if "Sent to" in t]
 

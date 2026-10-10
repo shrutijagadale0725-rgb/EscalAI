@@ -195,3 +195,100 @@ def understand(message, case_id, status, awaiting_name):
         except Exception:
             pass
     return regex_route(message, case_id, status)
+
+
+# ---------------------------------------------------------------------------
+# Waiting-stage tool-calling agent.
+#
+# regex_route()'s final fallback for an unmatched message while status == "waiting"
+# is always get_next_step -- the same canned "N days left" line, no matter what the
+# user actually typed ("it's 28 days", "when will I hear back", etc). This layer
+# gives the model two real moves instead: advance the clock, or answer from the
+# real state -- never from its own imagination.
+# ---------------------------------------------------------------------------
+
+WAIT_TOOLS = [{
+    "type": "function",
+    "function": {
+        "name": "advance_days",
+        "description": (
+            "Call this when the user's message states or implies that time has passed, "
+            "or names a specific calendar date -- e.g. 'it's been 28 days', 'it's 12 Nov today', "
+            "'still nothing after 3 weeks'. Give the resulting TOTAL simulated case-day number "
+            "(not a delta) -- case-day 0 is when the case opened."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {"days": {"type": "integer",
+                                     "description": "The total simulated case-day number this message implies."}},
+            "required": ["days"],
+        },
+    },
+}]
+
+
+def waiting_reply(message, state, key, model):
+    """state needs: day (current sim day), days_left, stage (display name, e.g. 'Grievance officer').
+
+    Returns ("advance", n) meaning fast-forward n days from today, ("say", text) to reply
+    in place without changing anything, or None if nothing usable came back -- the caller
+    should fall through to the existing canned reply rather than show nothing.
+    """
+    import datetime
+    due_day = state["day"] + state["days_left"]
+    today_real = datetime.date.today().isoformat()
+    facts = (f"This case opened on {today_real} (that real-world date is case-day 0). "
+             f"The simulated clock is currently at case-day {state['day']}. "
+             f"Days left in this reply window: {state['days_left']}. Current stage: {state['stage']}. "
+             f"Reply is due on case-day {due_day}.")
+    system = (
+        "You help with a consumer-complaint tracking app that runs on a simulated clock. "
+        f"This case opened on {today_real}, which is case-day 0 -- that anchor never moves, "
+        "no matter how far the simulated clock has already been advanced. "
+        "If the message states or implies a calendar date, work out how many days after "
+        f"{today_real} that date is -- that number alone (not added to anything else) IS the "
+        "target case-day to call advance_days with. If it states a relative duration instead "
+        f"(e.g. '8 days', '3 weeks'), add that number to the CURRENT case-day, {state['day']}, "
+        "to get the target case-day. "
+        f"Otherwise answer ONLY from these known facts, never invent a date, day count or promise: {facts} "
+        "If you can't answer from these facts, say you're not sure and suggest checking back. "
+        "Keep it to 1-2 sentences."
+    )
+    import httpx
+    r = httpx.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {key}"},
+        json={"model": model, "temperature": 0,
+              "messages": [{"role": "system", "content": system}, {"role": "user", "content": message}],
+              "tools": WAIT_TOOLS, "tool_choice": "auto"},
+        timeout=15,
+    )
+    r.raise_for_status()
+    msg = r.json()["choices"][0]["message"]
+
+    calls = msg.get("tool_calls") or []
+    if calls:
+        days = int(json.loads(calls[0]["function"]["arguments"])["days"])
+        return ("advance", max(0, days - state["day"]))
+
+    text = (msg.get("content") or "").strip()
+    if not text:
+        return None
+    # Hallucination guard: reject any number the model used that isn't one of the real facts.
+    known = {str(state["day"]), str(state["days_left"]), str(due_day)}
+    if set(re.findall(r"\d+", text)) - known:
+        return None
+    return ("say", text)
+
+
+def try_waiting_reply(message, state):
+    """Convenience wrapper: reads the Groq env vars itself and swallows any failure,
+    so callers can use this without duplicating the key/model lookup or a try/except."""
+    key = os.getenv("GROQ_API_KEY")
+    if not key:
+        return None
+    model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+    try:
+        return waiting_reply(message, state, key, model)
+    except Exception:
+        return None

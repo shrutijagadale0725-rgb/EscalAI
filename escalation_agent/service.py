@@ -58,30 +58,16 @@ class CaseService:
         return {"configurable": {"thread_id": case_id}}
 
     def start(self, product, issue, platform="", order_id="", amount="", purchase_date="", name=""):
-        platform = _tidy_platform(platform)
-        order_id = order_id.strip()
-        amount = _tidy_amount(amount)
-
-        # Reuse an existing open case for the same order instead of creating a duplicate.
-        existing = self._conn.execute(
-            "SELECT case_id FROM case_index WHERE product=? AND platform=? AND order_id=? "
-            "ORDER BY created_at DESC LIMIT 1",
-            (product.strip(), platform, order_id)).fetchone()
-        if existing:
-            v = self.view(existing[0])
-            if v and v["status"] not in DONE:
-                return v   # resume the live case instead of starting a new one
-
         cid = "c" + uuid.uuid4().hex[:12]
         state = {"case_id": cid, "product": product.strip(), "issue": issue.strip(),
-                "platform": platform, "order_id": order_id,
-                "amount": amount, "purchase_date": purchase_date.strip(), "name": name.strip(),
+                "platform": _tidy_platform(platform), "order_id": order_id.strip(),
+                "amount": _tidy_amount(amount), "purchase_date": purchase_date.strip(), "name": name.strip(),
                 "stage": 0, "day": 0, "stage_start": 0, "created_at": self.clock(), "skew": 0, "sent": False, "draft": "",
                 "timeline": ["Day 0 · Case opened"], "status": "collecting"}
         self.graph.invoke(state, self._cfg(cid))
         self._conn.execute(
             "INSERT INTO case_index (case_id, name, product, platform, order_id, amount, created_at) VALUES (?,?,?,?,?,?,?)",
-            (cid, name.strip(), product.strip(), platform, order_id, amount, self.clock()))
+            (cid, name.strip(), product.strip(), _tidy_platform(platform), order_id.strip(), _tidy_amount(amount), self.clock()))
         self._conn.commit()
         return self.view(cid)
 
@@ -160,6 +146,24 @@ class CaseService:
         if s == "closed":
             return "Case closed without filing."
         return ask or "Working on it."
+
+    def delete(self, case_id):
+        """Permanently remove a case: its index row and all LangGraph checkpoint data for it."""
+        snap = self.graph.get_state(self._cfg(case_id))
+        if not snap.values:
+            return False
+        cur = self._conn.cursor()
+        # SqliteSaver's standard tables, all keyed by thread_id == case_id here. Table names
+        # have been stable across langgraph-checkpoint-sqlite versions, but wrap each in a
+        # try so a renamed/missing table in some version can't block deleting the case itself.
+        for table in ("checkpoints", "checkpoint_writes", "checkpoint_blobs"):
+            try:
+                cur.execute(f"DELETE FROM {table} WHERE thread_id = ?", (case_id,))
+            except sqlite3.OperationalError:
+                pass
+        cur.execute("DELETE FROM case_index WHERE case_id = ?", (case_id,))
+        self._conn.commit()
+        return True
 
     def list_cases(self, limit=20):
         """Past cases, most recent first, with their live status."""

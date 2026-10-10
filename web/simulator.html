@@ -40,8 +40,8 @@ h1,h2,h3,p{margin:0}.mut{color:var(--mut)}
 .side .btn.pri{margin:0 14px 16px}
 .side h2{font:600 13px var(--ui);color:var(--mut);padding:0 18px 6px}
 #caseList{list-style:none;margin:0;padding:0 8px;overflow:auto;flex:1}
+#caseList li{position:relative}
 #caseList li:not(.note)::after{content:"";display:block;height:8px;margin:2px 10px 6px;border-bottom:2px solid #96980e;border-radius:0 0 8px 8px}
-#caseList li:last-child::after{display:none}
 #caseList .cb{width:100%;text-align:left;border:0;background:none;border-radius:var(--r);padding:9px 44px 9px 10px;display:flex;flex-direction:column;gap:3px;align-items:flex-start}
 #caseList .cb:hover{background:#fff}#caseList .cb.active{background:#fff;box-shadow:inset 3px 0 var(--coral)}
 #caseList .del{position:absolute;right:4px;top:6px;width:36px;min-height:36px;padding:0;border:0;background:none;border-radius:var(--r);display:grid;place-items:center;color:#8b8ba3}
