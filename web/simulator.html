@@ -112,8 +112,20 @@ details ul{margin:0;padding-left:18px;color:var(--mut);font-size:14px}
 .chathd h2{font:500 21px var(--disp);margin-right:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chathd .btn{flex:none}
 #log{flex:1;overflow:auto;padding:14px 16px}
-.m{max-width:88%;padding:9px 14px;border-radius:12px;margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
-.me{background:var(--navy);color:#fff;margin-left:auto;border-bottom-right-radius:3px}.bot{background:#fff;border:1px solid var(--line);border-bottom-left-radius:3px}
+.mrow{display:flex;flex-direction:column;margin:6px 0;max-width:88%}
+.mrow.me{align-items:flex-end;margin-left:auto}.mrow.bot{align-items:flex-start}
+.m{max-width:100%;padding:9px 14px;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.m.me{background:var(--navy);color:#fff;border-bottom-right-radius:3px}.m.bot{background:#fff;border:1px solid var(--line);border-bottom-left-radius:3px}
+.mact{display:flex;gap:2px;max-height:0;overflow:hidden;opacity:0;transition:opacity .12s,max-height .12s}
+.mrow:hover .mact,.mrow:focus-within .mact{max-height:28px;opacity:1;margin-top:3px}
+.mbtn{width:26px;height:26px;min-height:0;padding:0;border:0;background:none;display:grid;place-items:center;color:var(--mut);border-radius:6px}
+.mbtn:hover,.mbtn:focus-visible{background:var(--bot);color:var(--ink)}
+.mbtn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+textarea.m{display:block;border:0;resize:none;outline:0;font:inherit;line-height:1.6;overflow:hidden;box-shadow:0 0 0 1.5px rgba(255,255,255,.55) inset;min-height:40px}
+textarea.m:focus{box-shadow:0 0 0 2px rgba(255,255,255,.85) inset}
+textarea.m.me,textarea.m.bot{border-radius:12px}
+.meditBar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:6px}
+.meditBar .btn{min-height:30px;padding:0 14px;font-size:13px;border-radius:999px}
 .typing{color:var(--mut);animation:p 1s infinite alternate}@keyframes p{to{opacity:.35}}
 .cfoot{border-top:1px solid var(--line);padding:10px 14px 14px;background:#fff}
 .err{display:none;align-items:center;gap:10px;justify-content:space-between;background:var(--badBg);color:var(--bad);border-radius:var(--r);padding:8px 12px;margin-bottom:10px;font-size:14px}.err.show{display:flex}
@@ -441,7 +453,61 @@ const post=(u,b)=>fetch(u,{method:"POST",headers:{"Content-Type":"application/js
 function view(v){document.body.dataset.view=v;document.body.classList.remove("drawer");document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-current",b.dataset.view===v))}
 document.querySelector(".tabs").onclick=e=>{const b=e.target.closest("button");if(b)view(b.dataset.view)};
 $("menu").onclick=()=>document.body.classList.toggle("drawer");
-function add(t,c){const d=document.createElement("div");d.className="m "+c;d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+function add(t,c){
+ const isMe=c.split(" ").includes("me"),isTyping=c.split(" ").includes("typing");
+ const row=document.createElement("div");row.className="mrow "+(isMe?"me":"bot");
+ let text=t;
+ const d=document.createElement("div");d.className="m "+c;d.textContent=text;row.appendChild(d);
+ if(!isTyping){
+  const bar=document.createElement("div");bar.className="mact";
+  const mkBtn=(label,path)=>{const b=document.createElement("button");b.type="button";b.className="mbtn";b.setAttribute("aria-label",label);b.title=label;
+   b.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true">${path}</svg>`;return b};
+  const copyBtn=mkBtn("Copy message",'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>');
+  copyBtn.onclick=()=>{(navigator.clipboard?.writeText(text)||Promise.reject()).then(()=>toast("Copied")).catch(()=>toast("Couldn't copy"))};
+  bar.appendChild(copyBtn);
+  if(isMe){
+   const editBtn=mkBtn("Edit message",'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>');
+   editBtn.onclick=()=>startEdit(row,d,bar,text,v=>{text=v});
+   bar.appendChild(editBtn);
+  }
+  row.appendChild(bar);
+ }
+ log.appendChild(row);log.scrollTop=log.scrollHeight;return row}
+function startEdit(row,bubble,bar,text,setText){
+ bar.style.display="none";
+ const w=bubble.getBoundingClientRect().width;
+ const ta=document.createElement("textarea");ta.className=bubble.className;
+ ta.value=text;ta.setAttribute("aria-label","Edit message");ta.rows=1;
+ ta.style.width=Math.max(160,Math.round(w))+"px";
+ bubble.replaceWith(ta);
+ const controls=document.createElement("div");controls.className="meditBar";
+ const cancel=document.createElement("button");cancel.type="button";cancel.className="btn sm";cancel.textContent="Cancel";
+ const save=document.createElement("button");save.type="button";save.className="btn sm pri";save.textContent="Save";
+ controls.append(cancel,save);row.insertBefore(controls,bar);
+ const auto=()=>{ta.style.height="auto";ta.style.height=ta.scrollHeight+"px"};
+ auto();ta.oninput=auto;
+ // A stale webfont (Newsreader loads async) can leave the first measurement wrong --
+ // resync once layout and fonts have actually settled.
+ requestAnimationFrame(auto);
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(auto).catch(()=>{});
+ ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
+ const close=()=>{ta.replaceWith(bubble);controls.remove();bar.style.display=""};
+ cancel.onclick=close;
+ ta.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){close()}
+  else if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();save.click()}
+ });
+ save.onclick=async()=>{
+  const v=ta.value.trim();if(!v){toast("Message can't be empty");return}
+  bubble.textContent=v;setText(v);close();
+  // Resending from here only replays the chat visually -- the case is a live backend
+  // state machine, not a stateless transcript, so editing a past turn can't rewind
+  // actions (like "I sent it") that already moved the case forward. It's meant for
+  // fixing wording/details in what you just typed, same as the rest of this chat.
+  let n=row.nextSibling;while(n){const nx=n.nextSibling;n.remove();n=nx}
+  await runTurn(v)
+ }
+}
 function vb(t){$("vb").textContent=t}
 /* voice out (off by default): prefer a smooth female English voice, let the user change it */
 let bestVoice=null;
@@ -590,7 +656,9 @@ $("backBtn").onclick=()=>{if(prevMeta)switchCase(prevMeta);else nav("home")};
 $("newCase").onclick=$("newM").onclick=newCase;
 const SHOW=/\b(letter|draft|show)\b/i,STALE_CMD=/\b(sent|mailed|emailed|submitted|resolved|refund(ed)?|fixed|file|stop|skip|advance|\d+\s*days?|replied|responded)\b/i,REOPEN=/\b(reopen|re-?open|look into it again|same issue again|continue (this|it))\b/i;
 async function handle(text){
- text=text.trim();if(!text)return;lastText=text;add(text,"me");const force=SHOW.test(text);
+ text=text.trim();if(!text)return;lastText=text;add(text,"me");await runTurn(text)}
+async function runTurn(text){
+ const force=SHOW.test(text);
  try{
   if(caseId&&done){
    if(force){showResult(await callUnderstand(text),true);return}
