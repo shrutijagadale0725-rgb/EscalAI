@@ -23,6 +23,8 @@ Devpost's hackathon FAQ confirms Alexa+'s gated developer tools are **not availa
 
 Free text goes through `/api/understand`, which tries Groq (an LLM) first for natural-language routing and field extraction, and silently falls back to deterministic regex matching if there's no `GROQ_API_KEY` set or the Groq call fails for any reason. The app is fully functional with zero API keys — Groq just makes it understand more varied phrasing.
 
+While a case is in the **waiting** stage, a second Groq pass handles free-form check-ins — relative durations ("it's been 8 days"), absolute dates ("it's 23 nov"), and fact-grounded questions ("when will I hear back?") — by giving the model real callable actions instead of free-text generation, so an answer is only accepted if it's checkable against the case's actual known facts. Anything it can't safely answer falls back to "not sure, check back" rather than guessing.
+
 ## Running it
 
 ```bash
@@ -50,6 +52,16 @@ $env:GROQ_MODEL="openai/gpt-oss-120b" # optional override
 | `draft_escalation` | Re-fetch the current letter/case file |
 | `simulate_days` | **Demo only** — fast-forward the case clock |
 | `reopen_case` | Resume a case you previously stopped |
+| `delete_case` | Permanently delete a case, its letters and its history |
+
+## The simulator
+
+Besides the chat and letter views, the simulator includes:
+
+- **Per-case delete** — a trash icon on each case in the sidebar, with a confirmation step, that removes the case and its full LangGraph history for good.
+- **Inline message editing** — hover a message you sent and a pencil icon lets you edit it in place, Claude-style: the bubble itself becomes editable, Cancel/Save appear underneath, and saving drops everything that followed in the log and resends. (This replays the chat visually; it doesn't rewind actions like "I sent it" that already moved a live case forward.)
+- **Copy message** — a copy icon on every message, yours or the agent's.
+- Resizable split panes, a light/no-signup voice mode with a selectable voice, and a landing page explaining how the agent works and what it does with your data.
 
 ## Testing
 
