@@ -25,3 +25,17 @@ A mid-project edit to improve product-name extraction accidentally left an uncon
 ## Reopening a case stopped at the filing-decision stage needed special handling
 
 The filing gate (Consumer Commission stage) has no reply-window — it's a one-time yes/no decision, not a send-and-wait cycle. The generic "reopen by replaying the ladder from this stage" mechanism assumes every stage has a window and would crash on this one. Fixed by giving the graph an explicit alternate entry point for this one case, rather than reworking the general resume mechanism.
+
+## The waiting-stage NLU needed real tool-calling, not intent classification
+
+Early on, anything a user said while a case was "waiting" (e.g. "it's been 28 days, when will I hear back?") hit the same canned reply regardless of content, because the router only recognized a fixed set of commands. Classifying free text into a wordlist of intents doesn't scale to real phrasing. Replaced it with Groq function-calling: the model gets one real tool (`advance_days`) and is told to answer only from the case's actual known facts, with any numeric claim it can't verify against those facts discarded in favor of "not sure, check back." This closed off hallucination by construction instead of by prompting it away.
+
+Two subtler bugs came out of building this: (1) the general router's fallback-on-missing-args path could re-land on `get_next_step` by a different route than the one the waiting-stage check was looking for, silently skipping the new agent — fixed by moving that check after all routing/fallback resolution settles, not just after the first pass; (2) a calendar-date message ("it's 16 oct") computed against the *current* simulated day instead of the case's fixed open-date anchor, so a second date message in the same case could double-count prior clock advances and over-escalate. Fixed by anchoring calendar-date math to the real-world date the case opened on, which never moves, while relative durations ("8 days") still correctly add to the current simulated day.
+
+## A CSS class collision silently doubled up on every message bubble
+
+`.me`/`.bot` (navy/white message styling) were written as bare class selectors, and the message wrapper `<div>` happens to carry the same class name as the bubble it contains — so both elements picked up the background rule, with the outer one painting a second, larger, square-cornered box behind the actual rounded bubble. Same navy-on-navy color made it invisible for short messages, so it shipped unnoticed until a taller element (an inline edit box) made the mismatch obvious. Fixed by scoping the rule to the bubble class specifically (`.m.me` / `.m.bot`) instead of the bare class name — a reminder that a shared class name between a wrapper and its child is worth a second look.
+
+## Deleting a case means deleting LangGraph's own state, not just an index row
+
+`delete_case` isn't just a SQL `DELETE` on the app's own case table — each case is a LangGraph thread persisted via `SqliteSaver`, with its own checkpoint rows keyed by `thread_id`. Skipping those would leave orphaned graph state behind for every deleted case. There's no public "delete this thread" method on `SqliteSaver`, so this reaches into its known table names (`checkpoints`, `checkpoint_writes`, `checkpoint_blobs`) directly, with each delete wrapped individually so a renamed table in some future langgraph-checkpoint-sqlite version can't block the rest of the cleanup.
