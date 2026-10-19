@@ -655,6 +655,10 @@ function setBack(){$("backBtn").textContent=prevMeta?"← Back to "+(prevMeta.pr
 $("backBtn").onclick=()=>{if(prevMeta)switchCase(prevMeta);else nav("home")};
 $("newCase").onclick=$("newM").onclick=newCase;
 const SHOW=/\b(letter|draft|show)\b/i,STALE_CMD=/\b(sent|mailed|emailed|submitted|resolved|refund(ed)?|fixed|file|stop|skip|advance|\d+\s*days?|replied|responded)\b/i,REOPEN=/\b(reopen|re-?open|look into it again|same issue again|continue (this|it))\b/i;
+// Only matches when the WHOLE message is a closing remark -- not a bare \b word test --
+// so a real new complaint that happens to contain "ok" or "great" never gets swallowed here.
+const ACK=/^\s*(thanks?( you| u)?|thx|ty|cool|ok(ay)?|great|nice( one)?|got it|noted|perfect|awesome|sounds good|no (more|further) (questions?|help needed)|that'?s all|all good)[\s.!,]*$/i;
+const ACK_REPLIES=["You're welcome! I'm here if you need anything else on this case.","Happy to help. Reach out anytime if something changes.","Glad that's sorted. I'll be here if you need this case again."];
 async function handle(text){
  text=text.trim();if(!text)return;lastText=text;add(text,"me");await runTurn(text)}
 async function runTurn(text){
@@ -662,6 +666,7 @@ async function runTurn(text){
  try{
   if(caseId&&done){
    if(force){showResult(await callUnderstand(text),true);return}
+   if(ACK.test(text)){add(ACK_REPLIES[Math.floor(Math.random()*ACK_REPLIES.length)],"bot");return}
    if(REOPEN.test(text)){showResult(await callUnderstand(text));return}
    if(STALE_CMD.test(text)){add(staleReply(text),"bot");return}
    newCase();add(text,"me")}
