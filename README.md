@@ -94,6 +94,12 @@ All 26 tests pass. Use `python -m pytest` rather than bare `pytest` so the proje
 
 Covers the full escalation ladder, real-clock vs. simulated-clock behavior, the MCP Streamable HTTP endpoint end-to-end, the HTTP API's security hardening (origin checks, content-type checks), and regression tests for bugs found during development. See [`FRICTION_LOG.md`](FRICTION_LOG.md) for what went wrong along the way and how it was fixed.
 
+## Roadmap
+
+- **Deadline reminders.** Notify the user as each reply window nears its end (seller support, grievance officer, National Consumer Helpline) so a deadline isn't missed. Planned as an in-app banner first, then email or browser notifications.
+- **More regions and rules.** Add other countries' consumer-protection ladders through `rules.yaml`.
+- **Real Alexa+ device.** Connect the same MCP tools to an Alexa+ Agent Skill once developer access is available.
+
 ## AI assistance
 
 Built with help from Claude (Anthropic, via claude.ai) for architecture design, debugging, code generation and documentation. Groq powers the optional runtime language understanding.
