@@ -84,9 +84,13 @@ Python, LangGraph (with SqliteSaver persistence), FastAPI/Starlette, the `mcp` P
 
 ## Testing
 
+Run from the folder that contains the `escalation_agent` package and `tests/`:
+
 ```bash
-pytest -v
+python -m pytest -v
 ```
+
+All 26 tests pass. Use `python -m pytest` rather than bare `pytest` so the project folder is on the import path (or add a `pytest.ini` containing `pythonpath = .` next to `tests/`).
 
 Covers the full escalation ladder, real-clock vs. simulated-clock behavior, the MCP Streamable HTTP endpoint end-to-end, the HTTP API's security hardening (origin checks, content-type checks), and regression tests for bugs found during development. See [`FRICTION_LOG.md`](FRICTION_LOG.md) for what went wrong along the way and how it was fixed.
 
